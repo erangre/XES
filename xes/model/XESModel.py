@@ -2,6 +2,7 @@ import os
 import math
 import numpy as np
 from qtpy import QtCore
+from .calib import detector_calibration
 
 Si_a = 5.431E-10
 Si_h = 4
@@ -29,7 +30,18 @@ class XESModel(QtCore.QObject):
         theta = 180.0 * np.arcsin(sin_theta)/np.pi
         return theta
 
+    def theta_step_to_ev_step(self, E, theta, d_theta):
+        d_ev = abs(E / np.tan(theta*np.pi/180) * d_theta*np.pi/180)
+        return d_ev
+
+    def theta_to_roi(self, theta):
+        roi_start = detector_calibration['roi_start'] + detector_calibration['slope'] * \
+                    (theta - detector_calibration['theta_0'])
+        roi_end = roi_start + detector_calibration['roi_width']
+        return roi_start, roi_end
+
     @staticmethod
     def d_hkl(a, hh, kk, ll):
         d = a / np.sqrt(hh**2 + kk**2 + ll**2)
         return d
+
