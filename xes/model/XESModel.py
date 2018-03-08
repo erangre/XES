@@ -31,8 +31,13 @@ class XESModel(QtCore.QObject):
         return theta
 
     def theta_step_to_ev_step(self, E, theta, d_theta):
-        d_ev = abs(E / np.tan(theta*np.pi/180) * d_theta*np.pi/180)
+        d_ev = abs(E / np.tan(theta*np.pi/180.0) * d_theta*np.pi/180.0)
         return d_ev
+
+    def ev_step_to_theta_step(self, E, theta, d_ev):
+        d_theta_rad = d_ev/E*np.tan(theta*np.pi/180.0)
+        d_theta = d_theta_rad*180.0/np.pi
+        return d_theta
 
     def theta_to_roi(self, theta, calib=detector_calibration):
         roi_start = calib['roi_start'] + calib['slope'] * (theta - calib['theta_0'])

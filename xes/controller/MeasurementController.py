@@ -24,6 +24,9 @@ class MeasurementController(object):
         self.widget.theta_start_le.editingFinished.connect(self.theta_values_changed)
         self.widget.theta_end_le.editingFinished.connect(self.theta_values_changed)
         self.widget.theta_step_le.editingFinished.connect(self.theta_values_changed)
+        self.widget.ev_start_le.editingFinished.connect(self.ev_values_changed)
+        self.widget.ev_end_le.editingFinished.connect(self.ev_values_changed)
+        self.widget.ev_step_le.editingFinished.connect(self.ev_values_changed)
 
     def theta_values_changed(self):
         try:
@@ -44,3 +47,23 @@ class MeasurementController(object):
         self.widget.ev_start_le.setText(str(ev_start))
         self.widget.ev_end_le.setText(str(ev_end))
         self.widget.ev_step_le.setText(str(ev_step))
+
+    def ev_values_changed(self):
+        try:
+            ev_start = float(self.widget.ev_start_le.text())
+            ev_end = float(self.widget.ev_end_le.text())
+            ev_step = float(self.widget.ev_step_le.text())
+        except ValueError:
+            # TODO: Print msg about using float values
+            return
+        num_steps = round(abs((ev_end-ev_start)/ev_step))
+        self.widget.num_steps_lbl.setText(str(num_steps))
+        actual_ev_end = ev_start + num_steps*ev_step
+        self.widget.theta_end_le.setText(str(actual_ev_end))
+
+        theta_start = self.model.ev_to_theta(ev_start)
+        theta_end = self.model.ev_to_theta(ev_end)
+        theta_step = self.model.ev_step_to_theta_step(ev_start, theta_start, ev_step)
+        self.widget.theta_start_le.setText(str(theta_start))
+        self.widget.theta_end_le.setText(str(theta_end))
+        self.widget.theta_step_le.setText(str(theta_step))
