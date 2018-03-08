@@ -35,5 +35,12 @@ class MeasurementController(object):
             return
         num_steps = round(abs((theta_end-theta_start)/theta_step))
         self.widget.num_steps_lbl.setText(str(num_steps))
-        # TODO: update theta_end to actual value.
-        # TODO: update E_values
+        actual_theta_end = theta_start + num_steps*theta_step
+        self.widget.theta_end_le.setText(str(actual_theta_end))
+
+        ev_start = self.model.theta_to_ev(theta_start)
+        ev_end = self.model.theta_to_ev(theta_end)
+        ev_step = self.model.theta_step_to_ev_step(ev_start, theta_start, theta_step)
+        self.widget.ev_start_le.setText(str(ev_start))
+        self.widget.ev_end_le.setText(str(ev_end))
+        self.widget.ev_step_le.setText(str(ev_step))

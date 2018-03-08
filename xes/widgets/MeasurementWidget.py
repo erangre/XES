@@ -11,6 +11,9 @@ class MeasurementWidget(QtWidgets.QWidget):
         self.theta_end_le = QtWidgets.QLineEdit('66.4')
         self.theta_step_le = QtWidgets.QLineEdit('0.0183')
         self.num_steps_lbl = QtWidgets.QLabel('12')
+        self.ev_start_le = QtWidgets.QLineEdit('7050')
+        self.ev_end_le = QtWidgets.QLineEdit('7150')
+        self.ev_step_le = QtWidgets.QLineEdit('2')
 
         self.set_widget_properties()
 
