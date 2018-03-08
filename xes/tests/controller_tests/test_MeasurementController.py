@@ -123,3 +123,13 @@ class TestMeasurementController(QtTest):
         enter_value_into_text_field(self.measure_controller.widget.ev_end_le, end_ev)
         enter_value_into_text_field(self.measure_controller.widget.ev_step_le, ev_step)
         return start_ev, ev_step, end_ev, num_steps
+
+    def test_start_collection(self):
+        sys.excepthook = excepthook
+        self.measure_controller.widget.start_collection_btn.click()
+        self.measure_controller.widget.equal_ev_unit_rb.setChecked(True)
+        self.measure_controller.widget.start_collection_btn.click()
+        # These are commented out since after the measurement it returns back and I don't know how to test in the middle
+        # self.assertFalse(self.measure_controller.widget.time_per_step_le.isEnabled())
+        # self.assertFalse(self.measure_controller.widget.start_collection_btn.isEnabled())
+        # self.assertTrue(self.measure_controller.widget.abort_collection_btn.isEnabled())

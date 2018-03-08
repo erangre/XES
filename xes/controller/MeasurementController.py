@@ -1,14 +1,21 @@
 # -*- coding: utf8 -*-
 import os
 from sys import platform as _platform
+import logging
+import time
+import numpy as np
 
 from qtpy import QtWidgets, QtCore
 
 from ..widgets.MeasurementWidget import MeasurementWidget
 from ..model.XESModel import XESModel
+from threading import Thread
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
-class MeasurementController(object):
+class MeasurementController(QtCore.QObject):
     def __init__(self, widget, model):
         """
         :param widget:
@@ -16,6 +23,8 @@ class MeasurementController(object):
         :param model:
         :type model: XESModel
         """
+        super(MeasurementController, self).__init__()
+
         self.widget = widget
         self.model = model
         self.setup_connections()
@@ -29,6 +38,7 @@ class MeasurementController(object):
         self.widget.ev_step_le.editingFinished.connect(self.ev_values_changed)
         self.widget.time_per_step_le.editingFinished.connect(self.time_per_step_changed)
         self.widget.num_repeats_sb.valueChanged.connect(self.num_repeats_changed)
+        self.widget.start_collection_btn.clicked.connect(self.start_collection_btn_clicked)
 
     def theta_values_changed(self):
         try:
@@ -84,3 +94,43 @@ class MeasurementController(object):
 
     def num_repeats_changed(self):
         self.update_total_time('repeats')
+
+    def start_collection_btn_clicked(self):
+        self.toggle_measurement_buttons(False)
+        if self.widget.equal_theta_unit_rb.isChecked():
+            theta_start = float(self.widget.theta_start_le.text())
+            theta_end = float(self.widget.theta_end_le.text())
+            num_steps = int(self.widget.num_steps_lbl.text())
+            theta_values = np.linspace(theta_start, theta_end, num_steps)
+        elif self.widget.equal_ev_unit_rb.isChecked():
+            theta_values = []
+            ev_start = float(self.widget.ev_start_le.text())
+            ev_end = float(self.widget.ev_end_le.text())
+            num_steps = int(self.widget.num_steps_lbl.text())
+            ev_values = np.linspace(ev_start, ev_end, num_steps)
+            for ev_val in ev_values:
+                theta_values.append(self.model.ev_to_theta(ev_val))
+
+        else:
+            return
+        collection_thread = Thread(target=self.start_collection_on_thread,
+                                   kwargs={
+                                       'theta_values': theta_values
+                                   })
+        collection_thread.start()
+        while collection_thread.isAlive():
+            QtWidgets.QApplication.processEvents()
+            time.sleep(0.1)
+        self.toggle_measurement_buttons(True)
+
+    def start_collection_on_thread(self, theta_values):
+        logger.info('Using the following Theta Values', theta_values)
+
+    def toggle_measurement_buttons(self, toggle):
+        self.widget.num_repeats_sb.setEnabled(toggle)
+        for widget_item in self.widget.all_widgets:
+            widget_item.setEnabled(toggle)
+        self.widget.start_collection_btn.setVisible(toggle)
+        self.widget.start_collection_btn.setEnabled(toggle)
+        self.widget.abort_collection_btn.setVisible(not toggle)
+        self.widget.abort_collection_btn.setEnabled(not toggle)
