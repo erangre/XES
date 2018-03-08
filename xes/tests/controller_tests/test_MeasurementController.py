@@ -75,8 +75,9 @@ class TestMeasurementController(QtTest):
         time_per_step = 3.0
         enter_value_into_text_field(self.measure_controller.widget.time_per_step_le, time_per_step)
         num_steps = int(self.measure_controller.widget.num_steps_lbl.text())
+        num_repeats = self.measure_controller.widget.num_repeats_sb.value()
         total_time = float(self.measure_controller.widget.total_time_lbl.text())
-        self.assertEqual(total_time, num_steps*time_per_step)
+        self.assertEqual(total_time, num_steps*num_repeats*time_per_step)
 
     def test_changing_theta_values_updates_total_time(self):
         time_per_step = 3.0
@@ -85,7 +86,27 @@ class TestMeasurementController(QtTest):
         start_theta, theta_step, end_theta, num_steps = self.helper_input_theta_values()
 
         total_time = float(self.measure_controller.widget.total_time_lbl.text())
-        self.assertEqual(total_time, num_steps*time_per_step)
+        num_repeats = self.measure_controller.widget.num_repeats_sb.value()
+        self.assertEqual(total_time, num_steps*num_repeats*time_per_step)
+
+    def test_changing_ev_values_updates_total_time(self):
+        time_per_step = 3.0
+        enter_value_into_text_field(self.measure_controller.widget.time_per_step_le, time_per_step)
+
+        start_ev, ev_step, end_ev, num_steps = self.helper_input_ev_values()
+
+        total_time = float(self.measure_controller.widget.total_time_lbl.text())
+        num_repeats = self.measure_controller.widget.num_repeats_sb.value()
+
+        self.assertEqual(total_time, num_steps * num_repeats * time_per_step)
+
+    def test_changing_number_of_repeats_updates_total_time(self):
+        num_repeats = 5
+        self.measure_controller.widget.num_repeats_sb.setValue(num_repeats)
+        num_steps = int(self.measure_controller.widget.num_steps_lbl.text())
+        time_per_step = float(self.measure_controller.widget.time_per_step_le.text())
+        total_time = float(self.measure_controller.widget.total_time_lbl.text())
+        self.assertEqual(num_steps*num_repeats*time_per_step, total_time)
 
     def helper_input_theta_values(self, start_theta=66.18, num_steps=20, theta_step=0.0183, end_theta=None):
         if end_theta is None:

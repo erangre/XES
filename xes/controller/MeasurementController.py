@@ -28,6 +28,7 @@ class MeasurementController(object):
         self.widget.ev_end_le.editingFinished.connect(self.ev_values_changed)
         self.widget.ev_step_le.editingFinished.connect(self.ev_values_changed)
         self.widget.time_per_step_le.editingFinished.connect(self.time_per_step_changed)
+        self.widget.num_repeats_sb.valueChanged.connect(self.num_repeats_changed)
 
     def theta_values_changed(self):
         try:
@@ -77,5 +78,9 @@ class MeasurementController(object):
     def update_total_time(self, sender):
         num_steps = int(self.widget.num_steps_lbl.text())
         time_per_step = float(self.widget.time_per_step_le.text())
-        total_time = num_steps * time_per_step
+        num_repeats = int(self.widget.num_repeats_sb.value())
+        total_time = num_steps * time_per_step * num_repeats
         self.widget.total_time_lbl.setText(str(total_time))
+
+    def num_repeats_changed(self):
+        self.update_total_time('repeats')

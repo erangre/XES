@@ -16,6 +16,7 @@ class MeasurementWidget(QtWidgets.QWidget):
         self.ev_step_le = QtWidgets.QLineEdit('2')
         self.time_per_step_le = QtWidgets.QLineEdit('11.5')
         self.total_time_lbl = QtWidgets.QLabel('135.2')
+        self.num_repeats_sb = QtWidgets.QSpinBox()
 
         self.set_widget_properties()
 
@@ -27,3 +28,6 @@ class MeasurementWidget(QtWidgets.QWidget):
         self.ev_end_le.setValidator(QtGui.QDoubleValidator())
         self.ev_step_le.setValidator(QtGui.QDoubleValidator())
         self.time_per_step_le.setValidator(QtGui.QDoubleValidator())
+        self.num_repeats_sb.setMinimum(1)
+        self.num_repeats_sb.setSingleStep(1)
+        self.num_repeats_sb.setValue(2)
