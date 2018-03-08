@@ -14,6 +14,8 @@ class MeasurementWidget(QtWidgets.QWidget):
         self.ev_start_le = QtWidgets.QLineEdit('7050')
         self.ev_end_le = QtWidgets.QLineEdit('7150')
         self.ev_step_le = QtWidgets.QLineEdit('2')
+        self.time_per_step_le = QtWidgets.QLineEdit('11.5')
+        self.total_time_lbl = QtWidgets.QLabel('135.2')
 
         self.set_widget_properties()
 
@@ -21,3 +23,7 @@ class MeasurementWidget(QtWidgets.QWidget):
         self.theta_start_le.setValidator(QtGui.QDoubleValidator())
         self.theta_end_le.setValidator(QtGui.QDoubleValidator())
         self.theta_step_le.setValidator(QtGui.QDoubleValidator())
+        self.ev_start_le.setValidator(QtGui.QDoubleValidator())
+        self.ev_end_le.setValidator(QtGui.QDoubleValidator())
+        self.ev_step_le.setValidator(QtGui.QDoubleValidator())
+        self.time_per_step_le.setValidator(QtGui.QDoubleValidator())

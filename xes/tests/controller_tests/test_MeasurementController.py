@@ -71,6 +71,22 @@ class TestMeasurementController(QtTest):
         self.assertAlmostEqual(end_theta, self.model.ev_to_theta(end_ev), 5)
         self.assertAlmostEqual(theta_step, self.model.ev_step_to_theta_step(start_ev, start_theta, ev_step), 5)
 
+    def test_changing_time_per_step_updates_total_time(self):
+        time_per_step = 3.0
+        enter_value_into_text_field(self.measure_controller.widget.time_per_step_le, time_per_step)
+        num_steps = int(self.measure_controller.widget.num_steps_lbl.text())
+        total_time = float(self.measure_controller.widget.total_time_lbl.text())
+        self.assertEqual(total_time, num_steps*time_per_step)
+
+    def test_changing_theta_values_updates_total_time(self):
+        time_per_step = 3.0
+        enter_value_into_text_field(self.measure_controller.widget.time_per_step_le, time_per_step)
+
+        start_theta, theta_step, end_theta, num_steps = self.helper_input_theta_values()
+
+        total_time = float(self.measure_controller.widget.total_time_lbl.text())
+        self.assertEqual(total_time, num_steps*time_per_step)
+
     def helper_input_theta_values(self, start_theta=66.18, num_steps=20, theta_step=0.0183, end_theta=None):
         if end_theta is None:
             end_theta = start_theta + num_steps*theta_step
