@@ -46,15 +46,17 @@ class ConverterTest(QtTest):
         th_d_ev = 1.0
         ev1 = self.model.theta_to_ev(theta1)
         ev2 = self.model.theta_to_ev(theta2)
-        self.assertAlmostEqual(th_d_ev, abs(ev1-ev2), 2)
+        self.assertAlmostEqual(th_d_ev, abs(ev1-ev2), 1)
 
     def test_roi_pos_for_theta(self):
         theta = 66.18
         th_roi = detector_calibration['roi_start'], \
                  detector_calibration['roi_start'] + detector_calibration['roi_width']
+
         roi = self.model.theta_to_roi(theta)
         self.assertEqual(th_roi, roi)
         # TODO: test for other theta values
+
 
 if __name__ == '__main__':
     unittest.main()

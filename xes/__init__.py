@@ -69,12 +69,12 @@ def main():
     app = QtWidgets.QApplication([])
     sys.excepthook = excepthook
     from sys import platform as _platform
-    # from .controller.MainController import MainController
+    from .controller.MainController import MainController
 
     if _platform == "linux" or _platform == "linux2" or _platform == "win32" or _platform == 'cygwin':
         app.setStyle('plastique')
 
-    # controller = MainController()
-    # controller.show_window()
+    controller = MainController()
+    controller.show_window()
     app.exec_()
     del app
