@@ -124,8 +124,8 @@ class TestMeasurementController(QtTest):
         enter_value_into_text_field(self.measure_controller.widget.ev_step_le, ev_step)
         return start_ev, ev_step, end_ev, num_steps
 
-    def test_start_collection(self):
-        sys.excepthook = excepthook
+    def test_start_collection_theta_and_ev(self):
+        # sys.excepthook = excepthook
         self.measure_controller.widget.start_collection_btn.click()
         self.measure_controller.widget.equal_ev_unit_rb.setChecked(True)
         self.measure_controller.widget.start_collection_btn.click()
@@ -133,3 +133,7 @@ class TestMeasurementController(QtTest):
         # self.assertFalse(self.measure_controller.widget.time_per_step_le.isEnabled())
         # self.assertFalse(self.measure_controller.widget.start_collection_btn.isEnabled())
         # self.assertTrue(self.measure_controller.widget.abort_collection_btn.isEnabled())
+
+    def test_start_collection(self):
+        # sys.excepthook = excepthook
+        self.measure_controller.widget.start_collection_btn.click()

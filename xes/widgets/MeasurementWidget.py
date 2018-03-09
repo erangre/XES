@@ -16,11 +16,13 @@ class MeasurementWidget(QtWidgets.QWidget):
         self.ev_start_le = self._add_line_edit('7050')
         self.ev_end_le = self._add_line_edit('7150')
         self.ev_step_le = self._add_line_edit('2')
-        self.time_per_step_le = self._add_line_edit('11.5')
+        self.time_per_step_le = self._add_line_edit('1.5')
         self.total_time_lbl = QtWidgets.QLabel('135.2')
         self.num_repeats_sb = self._add_spin_box()
         self.start_collection_btn = QtWidgets.QPushButton('Start')
         self.abort_collection_btn = QtWidgets.QPushButton('Abort')
+        self.pause_collection_btn = QtWidgets.QPushButton('Pause')
+
 
         self.equal_unit_widget = QtWidgets.QWidget()
         self.equal_theta_unit_rb = QtWidgets.QRadioButton('Theta (deg)')
@@ -50,10 +52,12 @@ class MeasurementWidget(QtWidgets.QWidget):
         self.time_per_step_le.setValidator(QtGui.QDoubleValidator())
         self.num_repeats_sb.setMinimum(1)
         self.num_repeats_sb.setSingleStep(1)
-        self.num_repeats_sb.setValue(2)
+        self.num_repeats_sb.setValue(4)
         self.abort_collection_btn.setVisible(False)
         self.abort_collection_btn.setEnabled(False)
         self.equal_theta_unit_rb.setChecked(True)
+        self.pause_collection_btn.setVisible(False)
+        self.pause_collection_btn.setEnabled(False)
 
     def _create_layout(self):
         self._layout = QtWidgets.QVBoxLayout()
