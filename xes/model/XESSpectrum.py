@@ -33,6 +33,7 @@ class XESSpectrum(QtCore.QObject):
         if aps_beam > self._max_aps_beam:
             self._max_aps_beam = aps_beam
         self._all_data.append(new_data.copy())
+        print(new_data)
 
     def gather_data_for_theta(self, theta):
         counts = 0

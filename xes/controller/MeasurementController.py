@@ -11,9 +11,10 @@ from qtpy import QtWidgets, QtCore
 from ..widgets.MainWidget import MainWidget
 from ..widgets.MeasurementWidget import MeasurementWidget
 from ..model.XESModel import XESModel
+from ..model.XESSpectrum import XESSpectrum
 from threading import Thread
 
-from .epics_config import motor_pvs, detector_pvs
+from .epics_config import motor_pvs, detector_pvs, beam_pvs
 from.utils import caput_pil
 
 logger = logging.getLogger(__name__)
@@ -37,6 +38,12 @@ class MeasurementController(QtCore.QObject):
         self.collection_paused = False
         self.old_pv_values = {}
         self.setup_connections()
+        self.beam_data = {}
+        self.beam_data['IC1'] = 0
+        self.beam_data['IC2'] = 0
+        self.beam_data['aps_beam'] = 0
+        self.beam_data_count = 0
+        self.xps_spectra = []
 
     def setup_connections(self):
         self.widget.theta_start_le.editingFinished.connect(self.theta_values_changed)
@@ -107,6 +114,8 @@ class MeasurementController(QtCore.QObject):
         self.update_total_time('repeats')
 
     def start_collection_btn_clicked(self):
+        self.current_spectrum = XESSpectrum()
+        self.xps_spectra.append(self.current_spectrum)
         self.toggle_measurement_buttons(False)
         self.widget.pause_collection_btn.setText("Pause")
         self.save_current_pv_values()
@@ -154,22 +163,59 @@ class MeasurementController(QtCore.QObject):
         caput_pil(detector_pvs['acquire_period'], exp_time + 0.002, wait=True)
         for ind in range(num_repeats):
             for theta in theta_values:
+                self.clear_data_before_collecting()
                 while self.collection_paused:
                     if self.collection_aborted:
                         break
                     time.sleep(0.1)
                 if self.collection_aborted:
                     break
-                caput(motor_pvs['theta'], str(theta))
+                roi_start = self.model.theta_to_roi(theta)[0]
+
+                caput(motor_pvs['theta'], str(theta), wait=True)
+                caput(detector_pvs['roi_start'], roi_start, wait=True)
+
                 next_file_name = self.get_next_file_name()
                 self.widget.update_current_values(theta, self.model.theta_to_ev(theta), next_file_name)
                 QtWidgets.QApplication.processEvents()
-                caput(detector_pvs['acquire'], 1, wait=True, timeout=exp_time+60.0)
+                single_collection_thread = Thread(target=self.start_single_collection_on_sub_thread, kwargs={
+                                       'exp_time': exp_time
+                                   })
+                single_collection_thread.start()
+                while single_collection_thread.isAlive():
+                    self.gather_data_while_collecting()
+                    QtWidgets.QApplication.processEvents()
+                    time.sleep(0.2)
+                self.add_data_point(next_file_name, theta, exp_time)
+
             if self.collection_aborted:
                 break
             theta_values = np.flipud(theta_values)
         self.collection_aborted = False
         self.collection_paused = False
+
+    def start_single_collection_on_sub_thread(self, exp_time):
+        caput(detector_pvs['acquire'], 1, wait=True, timeout=exp_time + 60.0)
+
+    def add_data_point(self, file_name, theta, exp_time):
+        counts = caget(detector_pvs['roi_total_counts'], as_string=False)
+        ic1 = self.beam_data['IC1']/self.beam_data_count
+        ic2 = self.beam_data['IC2']/self.beam_data_count
+        aps_beam = self.beam_data['aps_beam']/self.beam_data_count
+        self.current_spectrum.add_data(file_name, theta, counts, exp_time, time.asctime(), ic1, ic2, aps_beam)
+
+    def gather_data_while_collecting(self):
+        self.beam_data_count += 1
+        for key in self.beam_data:
+            try:
+                self.beam_data[key] += caget(beam_pvs[key], as_string=False)
+            except TypeError:
+                pass
+
+    def clear_data_before_collecting(self):
+        self.beam_data_count = 0
+        for key in self.beam_data:
+            self.beam_data[key] = 0
 
     @staticmethod
     def get_next_file_name():
