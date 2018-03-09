@@ -5,11 +5,15 @@ from sys import platform as _platform
 from qtpy import QtWidgets, QtCore
 
 from ..widgets.MainWidget import MainWidget
+from .MeasurementController import MeasurementController
+from ..model.XESModel import XESModel
 
 
 class MainController(object):
     def __init__(self, use_settings=True):
         self.widget = MainWidget()
+        self.model = XESModel()
+        self.measurement_controller = MeasurementController(widget=self.widget, model=self.model)
 
     def show_window(self):
         """

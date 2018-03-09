@@ -10,7 +10,8 @@ detector_pvs = {
     'acquire_period': detector_prefix + 'AcquirePeriod',
     'acquire': detector_prefix + 'Acquire',
     'status_message': detector_prefix + 'StatusMessage_RBV',
-
+    'TIFF_base_name': TIFF_prefix + 'FileName_RBV',
+    'TIFF_next_number': TIFF_prefix + 'FileNumber_RBV',
 }
 
 detector_values = {

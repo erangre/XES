@@ -8,6 +8,7 @@ from epics import caput, caget
 
 from qtpy import QtWidgets, QtCore
 
+from ..widgets.MainWidget import MainWidget
 from ..widgets.MeasurementWidget import MeasurementWidget
 from ..model.XESModel import XESModel
 from threading import Thread
@@ -23,13 +24,14 @@ class MeasurementController(QtCore.QObject):
     def __init__(self, widget, model):
         """
         :param widget:
-        :type widget: MeasurementWidget
+        :type widget: MainWidget
         :param model:
         :type model: XESModel
         """
         super(MeasurementController, self).__init__()
 
-        self.widget = widget
+        self.main_widget = widget
+        self.widget = widget.measurement_widget
         self.model = model
         self.collection_aborted = False
         self.collection_paused = False
@@ -106,6 +108,7 @@ class MeasurementController(QtCore.QObject):
 
     def start_collection_btn_clicked(self):
         self.toggle_measurement_buttons(False)
+        self.widget.pause_collection_btn.setText("Pause")
         self.save_current_pv_values()
         theta_values = self.prepare_theta_values()
         exp_time = float(self.widget.time_per_step_le.text())
@@ -151,15 +154,29 @@ class MeasurementController(QtCore.QObject):
         caput_pil(detector_pvs['acquire_period'], exp_time + 0.002, wait=True)
         for ind in range(num_repeats):
             for theta in theta_values:
+                while self.collection_paused:
+                    if self.collection_aborted:
+                        break
+                    time.sleep(0.1)
                 if self.collection_aborted:
                     break
                 caput(motor_pvs['theta'], str(theta))
+                next_file_name = self.get_next_file_name()
+                self.widget.update_current_values(theta, self.model.theta_to_ev(theta), next_file_name)
                 QtWidgets.QApplication.processEvents()
                 caput(detector_pvs['acquire'], 1, wait=True, timeout=exp_time+60.0)
             if self.collection_aborted:
                 break
             theta_values = np.flipud(theta_values)
         self.collection_aborted = False
+        self.collection_paused = False
+
+    @staticmethod
+    def get_next_file_name():
+        base_name = caget(detector_pvs['TIFF_base_name'], as_string=True)
+        next_number = caget(detector_pvs['TIFF_next_number'], as_string=True)
+        next_file_name = ''.join([base_name, next_number])
+        return next_file_name
 
     def toggle_measurement_buttons(self, toggle):
         self.widget.num_repeats_sb.setEnabled(toggle)
@@ -189,4 +206,3 @@ class MeasurementController(QtCore.QObject):
             self.widget.pause_collection_btn.setText('Resume')
         else:
             self.widget.pause_collection_btn.setText('Pause')
-        # TODO: Actually pause and resume measurements
