@@ -83,7 +83,7 @@ class MeasurementController(QtCore.QObject):
         num_steps = round(abs((ev_end-ev_start)/ev_step))
         self.widget.num_steps_lbl.setText(str(num_steps))
         actual_ev_end = ev_start + num_steps*ev_step
-        self.widget.theta_end_le.setText(str(actual_ev_end))
+        self.widget.ev_end_le.setText(str(actual_ev_end))
 
         theta_start = self.model.ev_to_theta(ev_start)
         theta_end = self.model.ev_to_theta(ev_end)
