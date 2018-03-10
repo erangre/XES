@@ -2,6 +2,8 @@
 
 from qtpy import QtWidgets, QtGui, QtCore
 import pyqtgraph as pg
+import pyqtgraph.exporters
+
 import numpy as np
 
 
@@ -11,8 +13,8 @@ class GraphWidget(QtWidgets.QWidget):
 
         self.graph_units_lbl = QtWidgets.QLabel('Graph Units: ')
         self.graph_units_list = QtWidgets.QComboBox()
-        self.graph_units_list.addItem('Theta (deg)')
         self.graph_units_list.addItem('Energy (eV)')
+        self.graph_units_list.addItem('Theta (deg)')
 
         self.graph_normalize_lbl = QtWidgets.QLabel('Normalization')
         self.graph_normalize_list = QtWidgets.QComboBox()
@@ -87,9 +89,8 @@ class GraphWidget(QtWidgets.QWidget):
         # self.xes_data_plot = self.xes_spectrum_plot.plot(self.x_vector, self.counts_vector, pen=main_pen,
         #                                                  name="Current Data")
 
-    # def export_graph(self):
-    #     self.exporter = pg.exporters.ImageExporter(self.ramp_graph.scene())
-    #     temp_working_dir = caget(epc['temperature_directory'], as_string=True)
-    #     file_name = 'ramp_' + str(self.file_number['First'] + 1) + '_' + str(self.file_number['Last']) + '.png'
-    #     self.exporter.export(temp_working_dir + '\\' + file_name)
-
+    def export_graph(self, filename):
+        self.exporter = pg.exporters.ImageExporter(self.xes_graph.scene())
+        # temp_working_dir = caget(epc['temperature_directory'], as_string=True)
+        # file_name = 'ramp_' + str(self.file_number['First'] + 1) + '_' + str(self.file_number['Last']) + '.png'
+        self.exporter.export(filename)

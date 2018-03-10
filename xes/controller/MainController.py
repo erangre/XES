@@ -6,6 +6,7 @@ from qtpy import QtWidgets, QtCore
 
 from ..widgets.MainWidget import MainWidget
 from .MeasurementController import MeasurementController
+from .GraphController import GraphController
 from ..model.XESModel import XESModel
 
 
@@ -14,6 +15,8 @@ class MainController(object):
         self.widget = MainWidget()
         self.model = XESModel()
         self.measurement_controller = MeasurementController(widget=self.widget, model=self.model)
+        self.graph_controller = GraphController(widget=self.widget, model=self.model)
+        self.setup_connections()
 
     def show_window(self):
         """
@@ -25,3 +28,6 @@ class MainController(object):
             self.widget.setWindowState(self.widget.windowState() & ~QtCore.Qt.WindowMinimized | QtCore.Qt.WindowActive)
             self.widget.activateWindow()
             self.widget.raise_()
+
+    def setup_connections(self):
+        self.graph_controller.export_data_signal.connect(self.measurement_controller.export_data)

@@ -125,6 +125,9 @@ class MeasurementController(QtCore.QObject):
         if theta_values is None:
             return
 
+        self.current_spectrum.theta_values = list(theta_values)
+        self.current_spectrum.num_repeats = num_repeats
+
         self.main_widget.graph_widget.add_empty_xes_spectrum_to_graph(theta_values, ev_values)
 
         collection_thread = Thread(target=self.start_collection_on_thread,
@@ -268,3 +271,6 @@ class MeasurementController(QtCore.QObject):
             self.widget.pause_collection_btn.setText('Resume')
         else:
             self.widget.pause_collection_btn.setText('Pause')
+
+    def export_data(self, filename):
+        self.current_spectrum.export_data(filename)
