@@ -25,10 +25,8 @@ class GraphWidget(QtWidgets.QWidget):
 
         self.graph_export_image_btn = QtWidgets.QPushButton('Export Image')
         self.graph_export_data_btn = QtWidgets.QPushButton('Export Data')
-        self.current_spectrum_le = QtWidgets.QLineEdit('1')
+        self.current_spectrum_sb = QtWidgets.QSpinBox()
         self.spectra_count_lbl = QtWidgets.QLabel('of 1')
-        self.previous_spectrum_btn = QtWidgets.QPushButton('<')
-        self.next_spectrum_btn = QtWidgets.QPushButton('>')
 
         self._graph_control_layout = QtWidgets.QGridLayout()
         self._graph_control_layout.addWidget(self.graph_units_lbl, 1, 1, 1, 1)
@@ -37,10 +35,8 @@ class GraphWidget(QtWidgets.QWidget):
         self._graph_control_layout.addWidget(self.graph_normalize_list, 1, 4, 1, 1)
         self._graph_control_layout.addWidget(self.graph_export_image_btn, 2, 1, 1, 1)
         self._graph_control_layout.addWidget(self.graph_export_data_btn, 2, 2, 1, 1)
-        self._graph_control_layout.addWidget(self.previous_spectrum_btn, 3, 1, 1, 1)
-        self._graph_control_layout.addWidget(self.current_spectrum_le, 3, 2, 1, 1)
+        self._graph_control_layout.addWidget(self.current_spectrum_sb, 3, 2, 1, 1)
         self._graph_control_layout.addWidget(self.spectra_count_lbl, 3, 3, 1, 1)
-        self._graph_control_layout.addWidget(self.next_spectrum_btn, 3, 4, 1, 1)
 
         self.xes_graph = pg.GraphicsLayoutWidget()
 
@@ -59,12 +55,19 @@ class GraphWidget(QtWidgets.QWidget):
 
         # self.normalizer = 'RAW'
 
+        self._set_widget_properties()
+
         # TODO: validator for spectrum choice
         # TODO: make spectrum choice work
         # TODO: make normalization work
         # TODO: make energy choice work
         # TODO: update number of spectra
         # TODO: make exports work
+
+    def _set_widget_properties(self):
+        self.current_spectrum_sb.setValue(1)
+        self.current_spectrum_sb.setMinimum(1)
+        self.current_spectrum_sb.setMaximum(1)
 
     def add_empty_xes_spectrum_to_graph(self, theta_values, ev_values):
         main_pen = pg.mkPen({'color': (255, 255, 0), 'width': 2.0})
@@ -84,7 +87,9 @@ class GraphWidget(QtWidgets.QWidget):
         QtWidgets.QApplication.processEvents()
 
     def update_graph(self, xes_count_values):
-        self.xes_count_values = xes_count_values
+        self.xes_count_values[-1] = xes_count_values
+        self.current_xes_data_plot.setData(self.xes_ev_values[-1], self.xes_count_values[-1])
+        QtWidgets.QApplication.processEvents()
 
     # def add_xes_spectrum_to_graph(self):
         # xes_plot_labels = {'left': 'CPS', 'bottom': 'Energy (eV)', 'top': 'Theta (deg)'}
