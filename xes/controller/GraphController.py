@@ -44,14 +44,19 @@ class GraphController(QtCore.QObject):
 
     def graph_export_data_btn_clicked(self):
         filename = save_file_dialog(
-            self.widget, "Save XES Spectrum Data", os.getcwd(), 'Data (*.txt)')
+            self.widget, "Save XES Spectrum Data", self.model.current_directories['export_data_directory'],
+            'Data (*.txt)')
 
         if filename is not '':
+            self.model.current_directories['export_data_directory'] = os.path.dirname(filename)
+
             self.export_data_signal.emit(filename)
 
     def graph_export_image_btn_clicked(self):
         filename = save_file_dialog(
-            self.widget, "Save XES Spectrum Image", os.getcwd(), 'PNG (*.png)')
+            self.widget, "Save XES Spectrum Image", self.model.current_directories['export_image_directory'],
+            'PNG (*.png)')
 
         if filename is not '':
+            self.model.current_directories['export_image_directory'] = os.path.dirname(filename)
             self.widget.export_graph(filename)

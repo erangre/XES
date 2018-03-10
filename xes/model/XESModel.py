@@ -17,6 +17,10 @@ class XESModel(QtCore.QObject):
 
     def __init__(self):
         super(XESModel, self).__init__()
+        self.current_directories = {
+            'export_image_directory': os.getcwd(),
+            'export_data_directory': os.getcwd(),
+        }
 
     def theta_to_ev(self, theta):
         d_hkl = self.d_hkl(Si_a, Si_h, Si_k, Si_l)
