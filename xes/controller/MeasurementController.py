@@ -41,7 +41,7 @@ class MeasurementController(QtCore.QObject):
         self.beam_data = {}
         self.beam_data['IC1'] = 0
         self.beam_data['IC2'] = 0
-        self.beam_data['aps_beam'] = 0
+        self.beam_data['APS'] = 0
         self.beam_data_count = 0
         self.xps_spectra = []
 
@@ -216,7 +216,7 @@ class MeasurementController(QtCore.QObject):
         counts = caget(detector_pvs['roi_total_counts'], as_string=False)
         ic1 = round(self.beam_data['IC1']/self.beam_data_count, 3)
         ic2 = round(self.beam_data['IC2']/self.beam_data_count, 3)
-        aps_beam = round(self.beam_data['aps_beam']/self.beam_data_count, 3)
+        aps_beam = round(self.beam_data['APS']/self.beam_data_count, 3)
         self.current_spectrum.add_data(file_name, theta_ind, round(theta, 3), counts, exp_time, time.asctime(),
                                        ic1, ic2, aps_beam)
         total_counts, total_exp_time = self.current_spectrum.gather_data_for_theta(theta_ind)
@@ -274,3 +274,7 @@ class MeasurementController(QtCore.QObject):
 
     def export_data(self, filename):
         self.current_spectrum.export_data(filename)
+
+    def update_graph_data(self, normalizer):
+        normalized_counts = self.current_spectrum.normalize_data(normalizer)
+        self.main_widget.graph_widget.update_graph(normalized_counts)

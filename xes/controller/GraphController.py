@@ -24,6 +24,7 @@ logger.setLevel(logging.INFO)
 
 class GraphController(QtCore.QObject):
     export_data_signal = QtCore.Signal(str)
+    normalization_changed_signal = QtCore.Signal(str)
 
     def __init__(self, widget, model):
         """
@@ -41,6 +42,7 @@ class GraphController(QtCore.QObject):
     def setup_connections(self):
         self.widget.graph_export_data_btn.clicked.connect(self.graph_export_data_btn_clicked)
         self.widget.graph_export_image_btn.clicked.connect(self.graph_export_image_btn_clicked)
+        self.widget.graph_normalize_list.currentIndexChanged.connect(self.graph_normalize_list_index_changed)
 
     def graph_export_data_btn_clicked(self):
         filename = save_file_dialog(
@@ -60,3 +62,7 @@ class GraphController(QtCore.QObject):
         if filename is not '':
             self.model.current_directories['export_image_directory'] = os.path.dirname(filename)
             self.widget.export_graph(filename)
+
+    def graph_normalize_list_index_changed(self, ind):
+        # self.widget.normalizer = self.widget.graph_normalize_list.itemText(ind)
+        self.normalization_changed_signal.emit(self.widget.graph_normalize_list.itemText(ind))

@@ -57,6 +57,8 @@ class GraphWidget(QtWidgets.QWidget):
         self.xes_ev_values = []
         self.xes_count_values = []
 
+        # self.normalizer = 'RAW'
+
         # TODO: validator for spectrum choice
         # TODO: make spectrum choice work
         # TODO: make normalization work
@@ -80,6 +82,9 @@ class GraphWidget(QtWidgets.QWidget):
         self.xes_count_values[-1][theta_ind] = new_counts
         self.current_xes_data_plot.setData(self.xes_ev_values[-1], self.xes_count_values[-1])
         QtWidgets.QApplication.processEvents()
+
+    def update_graph(self, xes_count_values):
+        self.xes_count_values = xes_count_values
 
     # def add_xes_spectrum_to_graph(self):
         # xes_plot_labels = {'left': 'CPS', 'bottom': 'Energy (eV)', 'top': 'Theta (deg)'}

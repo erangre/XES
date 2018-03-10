@@ -31,3 +31,4 @@ class MainController(object):
 
     def setup_connections(self):
         self.graph_controller.export_data_signal.connect(self.measurement_controller.export_data)
+        self.graph_controller.normalization_changed_signal.connect(self.measurement_controller.update_graph_data)

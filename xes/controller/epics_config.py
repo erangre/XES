@@ -27,5 +27,5 @@ detector_values = {
 beam_pvs = {
     'IC1': '13IDA:mono_pid1.CVAL',
     'IC2': '13IDD:userTran1.P',
-    'aps_beam': 'S:SRcurrentAI.VAL',
+    'APS': 'S:SRcurrentAI.VAL',
 }
