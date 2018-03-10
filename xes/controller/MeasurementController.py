@@ -15,7 +15,7 @@ from ..model.XESSpectrum import XESSpectrum
 from threading import Thread
 
 from .epics_config import motor_pvs, detector_pvs, beam_pvs
-from.utils import caput_pil
+from.utils import caput_pil, str3
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -69,14 +69,14 @@ class MeasurementController(QtCore.QObject):
         num_steps = round(abs((theta_end-theta_start)/theta_step))
         self.widget.num_steps_lbl.setText(str(num_steps))
         actual_theta_end = theta_start + num_steps*theta_step
-        self.widget.theta_end_le.setText(str(actual_theta_end))
+        self.widget.theta_end_le.setText(str3(actual_theta_end))
 
         ev_start = self.model.theta_to_ev(theta_start)
         ev_end = self.model.theta_to_ev(theta_end)
         ev_step = self.model.theta_step_to_ev_step(ev_start, theta_start, theta_step)
-        self.widget.ev_start_le.setText(str(ev_start))
-        self.widget.ev_end_le.setText(str(ev_end))
-        self.widget.ev_step_le.setText(str(ev_step))
+        self.widget.ev_start_le.setText(str3(ev_start))
+        self.widget.ev_end_le.setText(str3(ev_end))
+        self.widget.ev_step_le.setText(str3(ev_step))
         self.update_total_time('theta')
 
     def ev_values_changed(self):
@@ -90,14 +90,14 @@ class MeasurementController(QtCore.QObject):
         num_steps = round(abs((ev_end-ev_start)/ev_step))
         self.widget.num_steps_lbl.setText(str(num_steps))
         actual_ev_end = ev_start + num_steps*ev_step
-        self.widget.ev_end_le.setText(str(actual_ev_end))
+        self.widget.ev_end_le.setText(str3(actual_ev_end))
 
         theta_start = self.model.ev_to_theta(ev_start)
         theta_end = self.model.ev_to_theta(ev_end)
         theta_step = self.model.ev_step_to_theta_step(ev_start, theta_start, ev_step)
-        self.widget.theta_start_le.setText(str(theta_start))
-        self.widget.theta_end_le.setText(str(theta_end))
-        self.widget.theta_step_le.setText(str(theta_step))
+        self.widget.theta_start_le.setText(str3(theta_start))
+        self.widget.theta_end_le.setText(str3(theta_end))
+        self.widget.theta_step_le.setText(str3(theta_step))
         self.update_total_time('ev')
 
     def time_per_step_changed(self):
@@ -108,7 +108,7 @@ class MeasurementController(QtCore.QObject):
         time_per_step = float(self.widget.time_per_step_le.text())
         num_repeats = int(self.widget.num_repeats_sb.value())
         total_time = num_steps * time_per_step * num_repeats
-        self.widget.total_time_lbl.setText(str(total_time))
+        self.widget.total_time_lbl.setText(str3(total_time))
 
     def num_repeats_changed(self):
         self.update_total_time('repeats')
@@ -166,7 +166,7 @@ class MeasurementController(QtCore.QObject):
         logger.info('Using the following Theta Values', theta_values)
         caput_pil(detector_pvs['exp_time'], exp_time, wait=True)
         caput_pil(detector_pvs['acquire_period'], exp_time + 0.002, wait=True)
-
+        num_steps = len(theta_values)
         theta_reversed = False
         for ind in range(num_repeats):
             theta_ind = 0
@@ -180,7 +180,7 @@ class MeasurementController(QtCore.QObject):
                     break
                 roi_start = self.model.theta_to_roi(theta)[0]
 
-                caput(motor_pvs['theta'], str(theta), wait=True)
+                caput(motor_pvs['theta'], theta, wait=True)
                 caput(detector_pvs['roi_start'], roi_start, wait=True)
 
                 next_file_name = self.get_next_file_name()
@@ -194,7 +194,7 @@ class MeasurementController(QtCore.QObject):
                     self.gather_data_while_collecting()
                     QtWidgets.QApplication.processEvents()
                     time.sleep(0.2)
-                self.add_data_point(next_file_name, theta, theta_ind, exp_time, theta_reversed)
+                self.add_data_point(next_file_name, theta, theta_ind, exp_time, theta_reversed, num_steps)
                 theta_ind += 1
 
             if self.collection_aborted:
@@ -207,15 +207,18 @@ class MeasurementController(QtCore.QObject):
     def start_single_collection_on_sub_thread(self, exp_time):
         caput(detector_pvs['acquire'], 1, wait=True, timeout=exp_time + 60.0)
 
-    def add_data_point(self, file_name, theta, theta_ind, exp_time, theta_reversed):
+    def add_data_point(self, file_name, theta, theta_ind, exp_time, theta_reversed, num_steps):
+        if theta_reversed:
+            theta_ind = num_steps - theta_ind - 1
         counts = caget(detector_pvs['roi_total_counts'], as_string=False)
-        ic1 = self.beam_data['IC1']/self.beam_data_count
-        ic2 = self.beam_data['IC2']/self.beam_data_count
-        aps_beam = self.beam_data['aps_beam']/self.beam_data_count
-        self.current_spectrum.add_data(file_name, theta, counts, exp_time, time.asctime(), ic1, ic2, aps_beam)
-        total_counts, total_exp_time = self.current_spectrum.gather_data_for_theta(theta)
+        ic1 = round(self.beam_data['IC1']/self.beam_data_count, 3)
+        ic2 = round(self.beam_data['IC2']/self.beam_data_count, 3)
+        aps_beam = round(self.beam_data['aps_beam']/self.beam_data_count, 3)
+        self.current_spectrum.add_data(file_name, theta_ind, round(theta, 3), counts, exp_time, time.asctime(),
+                                       ic1, ic2, aps_beam)
+        total_counts, total_exp_time = self.current_spectrum.gather_data_for_theta(theta_ind)
 
-        self.main_widget.graph_widget.update_data_point(theta_ind, total_counts/total_exp_time, theta_reversed)
+        self.main_widget.graph_widget.update_data_point(theta_ind, total_counts/total_exp_time)
 
     def gather_data_while_collecting(self):
         self.beam_data_count += 1

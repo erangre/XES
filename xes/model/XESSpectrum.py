@@ -15,9 +15,10 @@ class XESSpectrum(QtCore.QObject):
         self._max_ic2 = 0
         self._max_aps_beam = 0
 
-    def add_data(self, file_name, theta, counts, exp_time, time, ic1, ic2, aps_beam):
+    def add_data(self, file_name, theta_ind, theta, counts, exp_time, time, ic1, ic2, aps_beam):
         new_data = {
             'file_name': file_name,
+            'theta_ind': theta_ind,
             'theta': theta,
             'counts': counts,
             'exp_time': exp_time,
@@ -35,11 +36,12 @@ class XESSpectrum(QtCore.QObject):
         self._all_data.append(new_data.copy())
         print(new_data)
 
-    def gather_data_for_theta(self, theta):
+    # TODO: Fix this part. It doesn't work when rounding theta. Use index instead.
+    def gather_data_for_theta(self, theta_ind):
         counts = 0
         exp_time = 0
         for data_point in self._all_data:
-            if data_point['theta'] == theta:
+            if data_point['theta_ind'] == theta_ind:
                 counts += data_point['counts']
                 exp_time += data_point['exp_time']
         return counts, exp_time

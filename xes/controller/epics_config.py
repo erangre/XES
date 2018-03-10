@@ -1,6 +1,6 @@
 motor_pvs = {
-    'theta': '13IDC-PIL:AcquireSequence.STR1',
-    'phi': '13IDC-PIL:AcquireSequence.STR2',
+    'theta': '13IDC-PIL:scan1.P1SP',
+    'phi': '13IDC-PIL:scan1.P1EP',
 }
 
 detector_prefix = '13IDC-PIL:cam1:'

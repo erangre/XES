@@ -9,17 +9,58 @@ class GraphWidget(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
         super(GraphWidget, self).__init__(*args, **kwargs)
 
+        self.graph_units_lbl = QtWidgets.QLabel('Graph Units: ')
+        self.graph_units_list = QtWidgets.QComboBox()
+        self.graph_units_list.addItem('Theta (deg)')
+        self.graph_units_list.addItem('Energy (eV)')
+
+        self.graph_normalize_lbl = QtWidgets.QLabel('Normalization')
+        self.graph_normalize_list = QtWidgets.QComboBox()
+        self.graph_normalize_list.addItem('Raw')
+        self.graph_normalize_list.addItem('IC1')
+        self.graph_normalize_list.addItem('IC2')
+        self.graph_normalize_list.addItem('APS')
+
+        self.graph_export_image_btn = QtWidgets.QPushButton('Export Image')
+        self.graph_export_data_btn = QtWidgets.QPushButton('Export Data')
+        self.current_spectrum_le = QtWidgets.QLineEdit('1')
+        self.spectra_count_lbl = QtWidgets.QLabel('of 1')
+        self.previous_spectrum_btn = QtWidgets.QPushButton('<')
+        self.next_spectrum_btn = QtWidgets.QPushButton('>')
+
+        self._graph_control_layout = QtWidgets.QGridLayout()
+        self._graph_control_layout.addWidget(self.graph_units_lbl, 1, 1, 1, 1)
+        self._graph_control_layout.addWidget(self.graph_units_list, 1, 2, 1, 1)
+        self._graph_control_layout.addWidget(self.graph_normalize_lbl, 1, 3, 1, 1)
+        self._graph_control_layout.addWidget(self.graph_normalize_list, 1, 4, 1, 1)
+        self._graph_control_layout.addWidget(self.graph_export_image_btn, 2, 1, 1, 1)
+        self._graph_control_layout.addWidget(self.graph_export_data_btn, 2, 2, 1, 1)
+        self._graph_control_layout.addWidget(self.previous_spectrum_btn, 3, 1, 1, 1)
+        self._graph_control_layout.addWidget(self.current_spectrum_le, 3, 2, 1, 1)
+        self._graph_control_layout.addWidget(self.spectra_count_lbl, 3, 3, 1, 1)
+        self._graph_control_layout.addWidget(self.next_spectrum_btn, 3, 4, 1, 1)
+
         self.xes_graph = pg.GraphicsLayoutWidget()
 
         self._graph_layout = QtWidgets.QHBoxLayout()
         self._graph_layout.addWidget(self.xes_graph)
+        self._graph_layout.addLayout(self._graph_control_layout)
         self.setLayout(self._graph_layout)
+
         xes_plot_labels = {'left': 'CPS', 'bottom': 'Energy (eV)'}
         self.xes_spectrum_plot = self.xes_graph.addPlot(labels=xes_plot_labels)
+
         self.xes_spectra = []
         self.xes_theta_values = []
         self.xes_ev_values = []
         self.xes_count_values = []
+
+        # TODO: validator for spectrum choice
+        # TODO: make spectrum choice work
+        # TODO: make normalization work
+        # TODO: make energy choice work
+        # TODO: update number of spectra
+        # TODO: make exports work
 
     def add_empty_xes_spectrum_to_graph(self, theta_values, ev_values):
         main_pen = pg.mkPen({'color': (255, 255, 0), 'width': 2.0})
@@ -33,11 +74,8 @@ class GraphWidget(QtWidgets.QWidget):
 
         self.current_xes_data_plot = self.xes_spectra[-1]
 
-    def update_data_point(self, theta_ind, new_counts, theta_reversed):
-        if theta_reversed:
-            self.xes_count_values[-1][-theta_ind-1] = new_counts
-        else:
-            self.xes_count_values[-1][theta_ind] = new_counts
+    def update_data_point(self, theta_ind, new_counts):
+        self.xes_count_values[-1][theta_ind] = new_counts
         self.current_xes_data_plot.setData(self.xes_ev_values[-1], self.xes_count_values[-1])
         QtWidgets.QApplication.processEvents()
 

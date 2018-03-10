@@ -16,3 +16,7 @@ def caput_pil(pv, value, wait=True):
         if detector_values['status_message_ok'] in caget(detector_pvs['status_message'], as_string=True):
             return True
     return False
+
+
+def str3(value):
+    return "{0:.3f}".format(value)
