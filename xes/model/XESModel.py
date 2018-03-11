@@ -21,6 +21,7 @@ class XESModel(QtCore.QObject):
             'export_image_directory': os.getcwd(),
             'export_data_directory': os.getcwd(),
         }
+        self.calibration = detector_calibration.copy()
 
     def theta_to_ev(self, theta):
         d_hkl = self.d_hkl(Si_a, Si_h, Si_k, Si_l)
@@ -44,6 +45,7 @@ class XESModel(QtCore.QObject):
         return d_theta
 
     def theta_to_roi(self, theta, calib=detector_calibration):
+        calib = self.calibration
         roi_start = calib['roi_start'] + calib['slope'] * (theta - calib['theta_0'])
         roi_end = roi_start + calib['roi_width']
         return roi_start, roi_end

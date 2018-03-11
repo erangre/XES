@@ -43,7 +43,7 @@ class MeasurementController(QtCore.QObject):
         self.beam_data['IC2'] = 0
         self.beam_data['APS'] = 0
         self.beam_data_count = 0
-        self.xps_spectra = []
+        self.xes_spectra = []
 
     def setup_connections(self):
         self.widget.theta_start_le.editingFinished.connect(self.theta_values_changed)
@@ -114,8 +114,8 @@ class MeasurementController(QtCore.QObject):
         self.update_total_time('repeats')
 
     def start_collection_btn_clicked(self):
-        self.current_spectrum = XESSpectrum()
-        self.xps_spectra.append(self.current_spectrum)
+        self.xes_spectra.append(XESSpectrum())
+        self.current_spectrum = self.xes_spectra[-1]
         self.toggle_measurement_buttons(False)
         self.widget.pause_collection_btn.setText("Pause")
         self.save_current_pv_values()
@@ -171,6 +171,7 @@ class MeasurementController(QtCore.QObject):
         caput_pil(detector_pvs['acquire_period'], exp_time + 0.002, wait=True)
         num_steps = len(theta_values)
         theta_reversed = False
+        self.prepare_roi(theta_values[0])
         for ind in range(num_repeats):
             theta_ind = 0
             for theta in theta_values:
@@ -209,6 +210,12 @@ class MeasurementController(QtCore.QObject):
 
     def start_single_collection_on_sub_thread(self, exp_time):
         caput(detector_pvs['acquire'], 1, wait=True, timeout=exp_time + 60.0)
+
+    def prepare_roi(self, theta_start):
+        caput(detector_pvs['roi_start'], self.model.theta_to_roi(theta_start)[0], wait=True)
+        caput(detector_pvs['roi_width'], self.model.calibration['roi_width'], wait=True)
+        caput(detector_pvs['roi_left'], self.model.calibration['roi_left'], wait=True)
+        caput(detector_pvs['roi_range'], self.model.calibration['roi_range'], wait=True)
 
     def add_data_point(self, file_name, theta, theta_ind, exp_time, theta_reversed, num_steps):
         if theta_reversed:
@@ -277,4 +284,40 @@ class MeasurementController(QtCore.QObject):
 
     def update_graph_data(self, normalizer):
         normalized_counts = self.current_spectrum.normalize_data(normalizer)
-        self.main_widget.graph_widget.update_graph(normalized_counts)
+        self.main_widget.graph_widget.update_graph_values(normalized_counts)
+
+    def current_spectrum_changed(self, ind):
+        self.current_spectrum = self.xes_spectra[ind]
+
+    def load_settings(self, settings):
+        theta_start = settings.value("theta_start", defaultValue=None)
+        if theta_start is not None:
+            self.widget.theta_start_le.setText(theta_start)
+        theta_end = settings.value("theta_end", defaultValue=None)
+        if theta_end is not None:
+            self.widget.theta_end_le.setText(theta_end)
+        theta_step = settings.value("theta_step", defaultValue=None)
+        if theta_step is not None:
+            self.widget.theta_step_le.setText(theta_step)
+        time_per_step = settings.value("time_per_step", defaultValue=None)
+        if time_per_step is not None:
+            self.widget.time_per_step_le.setText(time_per_step)
+        num_repeats = settings.value("num_repeats", defaultValue=None)
+        if num_repeats is not None:
+            self.widget.num_repeats_sb.setValue(int(num_repeats))
+        export_data_directory = settings.value("export_data_directory", defaultValue=None)
+        if export_data_directory is not None:
+            self.model.current_directories['export_data_directory'] = export_data_directory
+        export_image_directory = settings.value("export_image_directory", defaultValue=None)
+        if export_image_directory is not None:
+            self.model.current_directories['export_image_directory'] = export_image_directory
+        self.theta_values_changed()
+
+    def save_settings(self, settings):
+        settings.setValue("theta_start", self.widget.theta_start_le.text())
+        settings.setValue("theta_end", self.widget.theta_end_le.text())
+        settings.setValue("theta_step", self.widget.theta_step_le.text())
+        settings.setValue("time_per_step", self.widget.time_per_step_le.text())
+        settings.setValue("num_repeats", str(self.widget.num_repeats_sb.value()))
+        settings.setValue("export_data_directory", self.model.current_directories['export_data_directory'])
+        settings.setValue("export_image_directory", self.model.current_directories['export_image_directory'])

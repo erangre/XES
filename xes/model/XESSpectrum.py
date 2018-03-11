@@ -2,7 +2,6 @@ import os
 import math
 import numpy as np
 from qtpy import QtCore
-from .calib import detector_calibration
 from collections import OrderedDict
 
 
@@ -63,8 +62,9 @@ class XESSpectrum(QtCore.QObject):
     def export_data(self, filename):
         file_handle = open(filename, 'w')
         num_points = len(self.all_data)
+        num_repeats = int(num_points/len(self.theta_values))
         header1 = '# Theta from: ' + str(min(self.theta_values)) + ' to ' + str(max(self.theta_values)) + \
-                  ', repeating ' + str(num_points) + ' times\n'
+                  ', repeating ' + str(num_repeats) + ' times\n'
 
         file_handle.write(header1)
         header2 = ''

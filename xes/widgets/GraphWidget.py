@@ -70,7 +70,7 @@ class GraphWidget(QtWidgets.QWidget):
 
     def add_empty_xes_spectrum_to_graph(self, theta_values, ev_values):
         if len(self.xes_spectra) > 0:
-            self.xes_spectrum_plot.removeItem(self.xes_spectra[-1])
+            self.xes_spectrum_plot.removeItem(self.xes_spectra[self.current_spectrum])
         main_pen = pg.mkPen({'color': (255, 255, 0), 'width': 2.0})
 
         self.xes_theta_values.append(theta_values)
@@ -92,13 +92,19 @@ class GraphWidget(QtWidgets.QWidget):
 
     def update_data_point(self, theta_ind, new_counts):
         self.xes_count_values[-1][theta_ind] = new_counts
-        self.current_xes_data_plot.setData(self.xes_ev_values[-1], self.xes_count_values[-1])
-        QtWidgets.QApplication.processEvents()
+        self.update_graph_plot(-1)
 
-    def update_graph(self, xes_count_values):
+    def update_graph_values(self, xes_count_values):
         ind = self.current_spectrum_sb.value() - 1
         self.xes_count_values[ind] = xes_count_values
-        self.current_xes_data_plot.setData(self.xes_ev_values[ind], self.xes_count_values[ind])
+        self.update_graph_plot(ind)
+
+    def update_graph_plot(self, ind):
+        units = self.graph_units_list.currentIndex()
+        if units == 0:
+            self.xes_spectra[ind].setData(self.xes_ev_values[ind], self.xes_count_values[ind])
+        elif units == 1:
+            self.xes_spectra[ind].setData(self.xes_theta_values[ind], self.xes_count_values[ind])
         QtWidgets.QApplication.processEvents()
 
     # def add_xes_spectrum_to_graph(self):
@@ -114,3 +120,12 @@ class GraphWidget(QtWidgets.QWidget):
         # temp_working_dir = caget(epc['temperature_directory'], as_string=True)
         # file_name = 'ramp_' + str(self.file_number['First'] + 1) + '_' + str(self.file_number['Last']) + '.png'
         self.exporter.export(filename)
+
+    # def change_graph_units(self, unit):
+    #     if unit == 0:
+    #         self.current_xes_data_plot.setData(self.xes_ev_values[-1], self.xes_count_values[-1])
+    #     elif unit == 1:
+    #         self.current_xes_data_plot.setData(self.xes_theta_values[-1], self.xes_count_values[-1])
+    #     else:
+    #         return
+    #     QtWidgets.QApplication.processEvents()

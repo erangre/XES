@@ -14,9 +14,9 @@ detector_pvs = {
     'TIFF_base_name': TIFF_prefix + 'FileName_RBV',
     'TIFF_next_number': TIFF_prefix + 'FileNumber_RBV',
     'roi_left': ROI_prefix + 'MinY',
-    'roi_size_hor': ROI_prefix + 'SizeY',
+    'roi_range': ROI_prefix + 'SizeY',
     'roi_start': ROI_prefix + 'MinX',
-    'roi_size_ver': ROI_prefix + 'SizeX',
+    'roi_width': ROI_prefix + 'SizeX',
     'roi_total_counts': '13IDC-PIL:Stats1:Total_RBV',
 }
 

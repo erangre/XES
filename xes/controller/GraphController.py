@@ -25,6 +25,7 @@ logger.setLevel(logging.INFO)
 class GraphController(QtCore.QObject):
     export_data_signal = QtCore.Signal(str)
     normalization_changed_signal = QtCore.Signal(str)
+    current_spectrum_changed_signal = QtCore.Signal(int)
 
     def __init__(self, widget, model):
         """
@@ -44,6 +45,7 @@ class GraphController(QtCore.QObject):
         self.widget.graph_export_image_btn.clicked.connect(self.graph_export_image_btn_clicked)
         self.widget.graph_normalize_list.currentIndexChanged.connect(self.graph_normalize_list_index_changed)
         self.widget.current_spectrum_sb.valueChanged.connect(self.current_spectrum_index_changed)
+        self.widget.graph_units_list.currentIndexChanged.connect(self.graph_units_list_index_changed)
 
     def graph_export_data_btn_clicked(self):
         filename = save_file_dialog(
@@ -73,3 +75,8 @@ class GraphController(QtCore.QObject):
         self.widget.current_spectrum = value - 1
         self.widget.xes_spectrum_plot.removeItem(self.widget.xes_spectra[old_spectrum_index])
         self.widget.xes_spectrum_plot.addItem(self.widget.xes_spectra[value - 1])
+        self.current_spectrum_changed_signal.emit(value - 1)
+        self.widget.update_graph_plot(value - 1)
+
+    def graph_units_list_index_changed(self, value):
+        self.widget.update_graph_plot(self.main_widget.graph_widget.current_spectrum_sb.value()-1)
