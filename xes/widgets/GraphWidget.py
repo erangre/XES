@@ -59,8 +59,6 @@ class GraphWidget(QtWidgets.QWidget):
 
         self._set_widget_properties()
 
-        # TODO: make energy choice work
-        # TODO: Modify exports to work for spectrum choice.
         # TODO: Check if normalization works for older spectra.
 
     def _set_widget_properties(self):

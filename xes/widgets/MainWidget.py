@@ -38,7 +38,7 @@ class MainWidget(QtWidgets.QWidget):
 
         self.setLayout(self._layout)
         self.set_widget_properties()
-        # TODO: add calibration and epics config widgets
+        # TODO: add pics config widgets
 
         # self._epics_config_layout = QtWidgets.QGridLayout()
 

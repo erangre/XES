@@ -26,8 +26,6 @@ class XESSpectrumTest(QtTest):
         self.spectrum.add_data('test.tif', 66.18, 103, 15.0, time.asctime(), 34.0, 80.0, 102.1)
         self.assertEqual(1, len(self.spectrum.all_data))
 
-        # TODO: Continue working on the data structure.
-
     def test_gather_data_for_theta(self):
         theta = 66.18
         th_counts = self.helper_add_data_points()
