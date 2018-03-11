@@ -60,12 +60,12 @@ class MainController(object):
 
     def load_settings(self):
         self.measurement_controller.load_settings(self.xes_settings)
-        # self.calibration_controller.load_settings(self.xes_settings)
+        self.calibration_controller.load_settings(self.xes_settings)
         # self.epics_controller.load_settings(self.xes_settings)
 
     def save_settings(self):
         self.measurement_controller.save_settings(self.xes_settings)
-        # self.calibration_controller.save_settings(self.xes_settings)
+        self.calibration_controller.save_settings(self.xes_settings)
         # self.epics_controller.save_settings(self.xes_settings)
 
     def closeEvent(self, event):

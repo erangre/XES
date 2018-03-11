@@ -56,7 +56,29 @@ class CalibrationController(QtCore.QObject):
         self.model.calibration['roi_width'] = self.widget.roi_width_sb.value()
 
     def load_settings(self, settings):
-        pass
+        theta_zero = settings.value("theta_zero", defaultValue=None)
+        if theta_zero is not None:
+            self.widget.theta_zero_le.setText(theta_zero)
+        slope = settings.value("slope", defaultValue=None)
+        if slope is not None:
+            self.widget.slope_le.setText(slope)
+        roi_start = settings.value("roi_start", defaultValue=None)
+        if roi_start is not None:
+            self.widget.roi_start_sb.setValue(int(roi_start))
+        roi_width = settings.value("roi_width", defaultValue=None)
+        if roi_width is not None:
+            self.widget.roi_width_sb.setValue(int(roi_width))
+        roi_left = settings.value("roi_left", defaultValue=None)
+        if roi_left is not None:
+            self.widget.roi_left_sb.setValue(int(roi_left))
+        roi_range = settings.value("roi_range", defaultValue=None)
+        if roi_range is not None:
+            self.widget.roi_range_sb.setValue(int(roi_range))
 
     def save_settings(self, settings):
-        pass
+        settings.setValue("theta_zero", self.widget.theta_zero_le.text())
+        settings.setValue("slope", self.widget.slope_le.text())
+        settings.setValue("roi_start", str(self.widget.roi_start_sb.value()))
+        settings.setValue("roi_width", str(self.widget.roi_width_sb.value()))
+        settings.setValue("roi_left", str(self.widget.roi_left_sb.value()))
+        settings.setValue("roi_range", str(self.widget.roi_range_sb.value()))
