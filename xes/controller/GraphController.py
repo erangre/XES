@@ -43,6 +43,7 @@ class GraphController(QtCore.QObject):
         self.widget.graph_export_data_btn.clicked.connect(self.graph_export_data_btn_clicked)
         self.widget.graph_export_image_btn.clicked.connect(self.graph_export_image_btn_clicked)
         self.widget.graph_normalize_list.currentIndexChanged.connect(self.graph_normalize_list_index_changed)
+        self.widget.current_spectrum_sb.valueChanged.connect(self.current_spectrum_index_changed)
 
     def graph_export_data_btn_clicked(self):
         filename = save_file_dialog(
@@ -66,3 +67,9 @@ class GraphController(QtCore.QObject):
     def graph_normalize_list_index_changed(self, ind):
         # self.widget.normalizer = self.widget.graph_normalize_list.itemText(ind)
         self.normalization_changed_signal.emit(self.widget.graph_normalize_list.itemText(ind))
+
+    def current_spectrum_index_changed(self, value):
+        old_spectrum_index = self.widget.current_spectrum
+        self.widget.current_spectrum = value - 1
+        self.widget.xes_spectrum_plot.removeItem(self.widget.xes_spectra[old_spectrum_index])
+        self.widget.xes_spectrum_plot.addItem(self.widget.xes_spectra[value - 1])

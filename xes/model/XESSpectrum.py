@@ -53,7 +53,7 @@ class XESSpectrum(QtCore.QObject):
     def normalize_data(self, normalizer):
         normalized_counts = np.zeros(len(self.theta_values))
         for data_point in self._all_data:
-            if normalizer == 'RAW':
+            if normalizer == 'Raw':
                 normalized_counts[data_point['theta_ind']] += data_point['counts'] / data_point['exp_time']
             else:
                 normalized_counts[data_point['theta_ind']] += data_point['counts'] / data_point['exp_time'] / \
