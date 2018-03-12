@@ -66,18 +66,22 @@ class MeasurementController(QtCore.QObject):
         except ValueError:
             # TODO: Print msg about using float values
             return
+        self.toggle_block_theta_an_ev_signals(True)
+
         num_steps = round(abs((theta_end-theta_start)/theta_step))
+
         self.widget.num_steps_lbl.setText(str(num_steps))
         actual_theta_end = theta_start + num_steps*theta_step
         self.widget.theta_end_le.setText(str3(actual_theta_end))
 
         ev_start = self.model.theta_to_ev(theta_start)
-        ev_end = self.model.theta_to_ev(theta_end)
+        ev_end = self.model.theta_to_ev(actual_theta_end)
         ev_step = self.model.theta_step_to_ev_step(ev_start, theta_start, theta_step)
         self.widget.ev_start_le.setText(str3(ev_start))
         self.widget.ev_end_le.setText(str3(ev_end))
         self.widget.ev_step_le.setText(str3(ev_step))
         self.update_total_time('theta')
+        self.toggle_block_theta_an_ev_signals(False)
 
     def ev_values_changed(self):
         try:
@@ -87,18 +91,29 @@ class MeasurementController(QtCore.QObject):
         except ValueError:
             # TODO: Print msg about using float values
             return
+        self.toggle_block_theta_an_ev_signals(True)
+
         num_steps = round(abs((ev_end-ev_start)/ev_step))
         self.widget.num_steps_lbl.setText(str(num_steps))
         actual_ev_end = ev_start + num_steps*ev_step
         self.widget.ev_end_le.setText(str3(actual_ev_end))
 
         theta_start = self.model.ev_to_theta(ev_start)
-        theta_end = self.model.ev_to_theta(ev_end)
+        theta_end = self.model.ev_to_theta(actual_ev_end)
         theta_step = self.model.ev_step_to_theta_step(ev_start, theta_start, ev_step)
         self.widget.theta_start_le.setText(str3(theta_start))
         self.widget.theta_end_le.setText(str3(theta_end))
         self.widget.theta_step_le.setText(str3(theta_step))
         self.update_total_time('ev')
+        self.toggle_block_theta_an_ev_signals(False)
+
+    def toggle_block_theta_an_ev_signals(self, toggle):
+        self.widget.ev_start_le.blockSignals(toggle)
+        self.widget.ev_step_le.blockSignals(toggle)
+        self.widget.ev_end_le.blockSignals(toggle)
+        self.widget.theta_start_le.blockSignals(toggle)
+        self.widget.theta_end_le.blockSignals(toggle)
+        self.widget.theta_step_le.blockSignals(toggle)
 
     def time_per_step_changed(self):
         self.update_total_time('time_per_step')
@@ -127,6 +142,7 @@ class MeasurementController(QtCore.QObject):
 
         self.current_spectrum.theta_values = list(theta_values)
         self.current_spectrum.num_repeats = num_repeats
+        self.prepare_backup_file()
 
         self.main_widget.graph_widget.add_empty_xes_spectrum_to_graph(theta_values, ev_values)
 
@@ -143,6 +159,21 @@ class MeasurementController(QtCore.QObject):
 
         self.restore_old_pv_values()
         self.toggle_measurement_buttons(True)
+        self.export_raw_data()
+        self.backup_file.close()
+
+    def prepare_backup_file(self):
+        backup_file_name = 'backup.txt'
+        self.backup_file = open(os.path.join(self.model.current_directories['export_data_directory'], backup_file_name), 'w')
+        self.current_spectrum.write_raw_header(self.backup_file)
+        self.current_spectrum.backup_file = self.backup_file
+
+    def export_raw_data(self):
+        file_name = 'raw_' + str(time.localtime().tm_year) + '_' + str(time.localtime().tm_mon) + '_' + \
+                    str(time.localtime().tm_mday) + '_' + str(time.localtime().tm_hour) + '_' + \
+                    str(time.localtime().tm_min) + '_' + str(time.localtime().tm_sec) + '.txt'
+        file_name = os.path.join(self.model.current_directories['export_data_directory'], file_name)
+        self.current_spectrum.export_raw_data(file_name)
 
     def prepare_theta_values(self):
         if self.widget.equal_theta_unit_rb.isChecked():
@@ -150,7 +181,7 @@ class MeasurementController(QtCore.QObject):
             theta_start = float(self.widget.theta_start_le.text())
             theta_end = float(self.widget.theta_end_le.text())
             num_steps = int(self.widget.num_steps_lbl.text())
-            theta_values = np.linspace(theta_start, theta_end, num_steps)
+            theta_values = np.linspace(theta_start, theta_end, num_steps+1)
             for theta_val in theta_values:
                 ev_values.append(self.model.theta_to_ev(theta_val))
         elif self.widget.equal_ev_unit_rb.isChecked():
@@ -158,11 +189,12 @@ class MeasurementController(QtCore.QObject):
             ev_start = float(self.widget.ev_start_le.text())
             ev_end = float(self.widget.ev_end_le.text())
             num_steps = int(self.widget.num_steps_lbl.text())
-            ev_values = np.linspace(ev_start, ev_end, num_steps)
+            ev_values = np.linspace(ev_start, ev_end, num_steps+1)
             for ev_val in ev_values:
                 theta_values.append(self.model.ev_to_theta(ev_val))
         else:
             theta_values = None
+            ev_values = None
         return theta_values, ev_values
 
     def start_collection_on_thread(self, theta_values, exp_time, num_repeats):

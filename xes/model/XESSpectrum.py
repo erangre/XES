@@ -18,6 +18,7 @@ class XESSpectrum(QtCore.QObject):
         }
         self.theta_values = []
         self.num_repeats = 0
+        self.backup_file = None
 
     def add_data(self, file_name, theta_ind, theta, counts, exp_time, time, ic1, ic2, aps_beam):
         new_data = OrderedDict()
@@ -39,6 +40,7 @@ class XESSpectrum(QtCore.QObject):
             self._max_norm['APS'] = aps_beam
         self._all_data.append(new_data.copy())
         print(new_data)
+        self.write_data_point_to_file(self.backup_file, new_data)
 
     def gather_data_for_theta(self, theta_ind):
         counts = 0
@@ -59,24 +61,51 @@ class XESSpectrum(QtCore.QObject):
                                                               data_point[normalizer] * self._max_norm[normalizer]
         return normalized_counts
 
-    def export_data(self, filename):
+    def write_data_point_to_file(self, file_handle, data_point):
+        line = ''
+        for key in data_point:
+            line = line + str(data_point[key]) + '\t'
+        file_handle.write(line + '\n')
+
+    def export_raw_data(self, filename=None):
         file_handle = open(filename, 'w')
+        self.write_raw_header(file_handle)
+        header2 = '# '
+        for key in self.all_data[0]:
+            header2 = header2 + key + '\t'
+        header2 = header2 + '\n'
+        file_handle.write(header2)
+
+        for data_point in self.all_data:
+            self.write_data_point_to_file(file_handle, data_point)
+        file_handle.close()
+
+    def export_data(self, filename=None):
+        file_handle = open(filename, 'w')
+        num_points = len(self.all_data)
+        num_theta = len(self.theta_values)
+        num_repeats = int(num_points/num_theta)
+        header1 = '# Theta from: ' + str(min(self.theta_values)) + ' to ' + str(max(self.theta_values)) + \
+                  ', repeating ' + str(num_repeats) + ' times\n'
+
+        file_handle.write(header1)
+        header2 = '# Theta\tCounts\tExp. Time\n'
+        file_handle.write(header2)
+
+        for ind in range(num_theta):
+            theta = self.theta_values[ind]
+            counts, exp_time = self.gather_data_for_theta(ind)
+            line = str(theta) + '\t' + str(counts) + '\t' + str(exp_time) + '\n'
+            file_handle.write(line)
+        file_handle.close()
+
+    def write_raw_header(self, file_handle):
         num_points = len(self.all_data)
         num_repeats = int(num_points/len(self.theta_values))
         header1 = '# Theta from: ' + str(min(self.theta_values)) + ' to ' + str(max(self.theta_values)) + \
                   ', repeating ' + str(num_repeats) + ' times\n'
 
         file_handle.write(header1)
-        header2 = ''
-        for key in self.all_data[0]:
-            header2 = header2 + key + '\t'
-        header2 = header2 + '\n'
-        file_handle.write(header2)
-        for data_point in self.all_data:
-            line = ''
-            for key in data_point:
-                line = line + str(data_point[key]) + '\t'
-            file_handle.write(line+'\n')
 
     @property
     def all_data(self):
