@@ -9,6 +9,13 @@ class MeasurementWidget(QtWidgets.QWidget):
 
         self.all_widgets = []
 
+        self.file_dir_lbl = QtWidgets.QLabel('Folder: ')
+        self.file_dir_le = self._add_line_edit('/DAC/')
+        self.file_name_lbl = QtWidgets.QLabel('File: ')
+        self.file_name_le = self._add_line_edit('')
+        self.start_number_lbl = QtWidgets.QLabel('#: ')
+        self.start_number_le = self._add_line_edit('1')
+
         self.theta_lbl = QtWidgets.QLabel('Theta (deg): ')
         self.ev_lbl = QtWidgets.QLabel('Energy (eV): ')
         self.start_lbl = QtWidgets.QLabel('Start')
@@ -27,6 +34,7 @@ class MeasurementWidget(QtWidgets.QWidget):
         self.ev_start_le = self._add_line_edit('7050')
         self.ev_end_le = self._add_line_edit('7150')
         self.ev_step_le = self._add_line_edit('2')
+        self.go_to_7058_btn = QtWidgets.QPushButton('Go to 7058')
         self.time_per_step_le = self._add_line_edit('1.5')
         self.total_time_lbl = QtWidgets.QLabel('135.2')
         self.num_repeats_sb = self._add_spin_box()
@@ -75,6 +83,7 @@ class MeasurementWidget(QtWidgets.QWidget):
         self.equal_theta_unit_rb.setChecked(True)
         self.pause_collection_btn.setVisible(False)
         self.pause_collection_btn.setEnabled(False)
+        self.all_widgets.append(self.go_to_7058_btn)
 
     def _create_layout(self):
         self._measurement_layout = QtWidgets.QGridLayout()
@@ -84,6 +93,12 @@ class MeasurementWidget(QtWidgets.QWidget):
         self._equal_unit_layout.addWidget(self.equal_ev_unit_rb)
         self.equal_unit_widget.setLayout(self._equal_unit_layout)
 
+        self._measurement_layout.addWidget(self.file_dir_lbl, 1, 0, 1, 1)
+        self._measurement_layout.addWidget(self.file_dir_le, 1, 1, 1, 1)
+        self._measurement_layout.addWidget(self.file_name_lbl, 1, 2, 1, 1)
+        self._measurement_layout.addWidget(self.file_name_le, 1, 3, 1, 1)
+        self._measurement_layout.addWidget(self.start_number_lbl, 1, 4, 1, 1)
+        self._measurement_layout.addWidget(self.start_number_le, 1, 5, 1, 1)
         self._measurement_layout.addWidget(self.start_lbl, 2, 4, 1, 1)
         self._measurement_layout.addWidget(self.end_lbl, 2, 5, 1, 1)
         self._measurement_layout.addWidget(self.step_lbl, 2, 6, 1, 1)
@@ -96,6 +111,7 @@ class MeasurementWidget(QtWidgets.QWidget):
         self._measurement_layout.addWidget(self.ev_start_le, 4, 4, 1, 1)
         self._measurement_layout.addWidget(self.ev_end_le, 4, 5, 1, 1)
         self._measurement_layout.addWidget(self.ev_step_le, 4, 6, 1, 1)
+        self._measurement_layout.addWidget(self.go_to_7058_btn, 4, 7, 1, 1)
         self._measurement_layout.addWidget(self.time_per_step_lbl, 5, 0, 1, 1)
         self._measurement_layout.addWidget(self.time_per_step_le, 5, 1, 1, 1)
         self._measurement_layout.addWidget(self.num_repeats_lbl, 5, 2, 1, 1)
@@ -117,6 +133,6 @@ class MeasurementWidget(QtWidgets.QWidget):
         self.setLayout(self._measurement_layout)
 
     def update_current_values(self, current_theta, current_energy, next_file_name):
-        self.current_theta_lbl.setText(str(current_theta))
-        self.current_energy_lbl.setText(str(current_energy))
+        self.current_theta_lbl.setText("{0:.3f}".format(current_theta))
+        self.current_energy_lbl.setText("{0:.3f}".format(current_energy))
         self.next_file_lbl.setText(next_file_name)

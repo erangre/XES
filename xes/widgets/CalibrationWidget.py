@@ -40,3 +40,7 @@ class CalibrationWidget(QtWidgets.QWidget):
     def set_widget_properties(self):
         self.theta_zero_le.setValidator(QtGui.QDoubleValidator())
         self.slope_le.setValidator(QtGui.QDoubleValidator())
+        self.roi_start_sb.setMaximum(1000000)
+        self.roi_width_sb.setMaximum(1000)
+        self.roi_left_sb.setMaximum(1000)
+        self.roi_range_sb.setMaximum(1000)

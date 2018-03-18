@@ -14,7 +14,7 @@ from ..model.XESModel import XESModel
 from ..model.XESSpectrum import XESSpectrum
 from threading import Thread
 
-from .epics_config import motor_pvs, detector_pvs, beam_pvs
+from .epics_config import motor_pvs, detector_pvs, beam_pvs, general_pvs, general_values, detector_values
 from.utils import caput_pil, str3
 
 logger = logging.getLogger(__name__)
@@ -57,6 +57,10 @@ class MeasurementController(QtCore.QObject):
         self.widget.start_collection_btn.clicked.connect(self.start_collection_btn_clicked)
         self.widget.abort_collection_btn.clicked.connect(self.abort_collection_btn_clicked)
         self.widget.pause_collection_btn.clicked.connect(self.pause_collection_btn_clicked)
+        self.widget.file_dir_le.editingFinished.connect(self.file_dir_changed)
+        self.widget.file_name_le.editingFinished.connect(self.file_name_changed)
+        self.widget.start_number_le.editingFinished.connect(self.file_next_number_changed)
+        self.widget.go_to_7058_btn.clicked.connect(self.go_to_7058_ev_clicked)
 
     def theta_values_changed(self):
         try:
@@ -132,8 +136,11 @@ class MeasurementController(QtCore.QObject):
         self.xes_spectra.append(XESSpectrum())
         self.current_spectrum = self.xes_spectra[-1]
         self.toggle_measurement_buttons(False)
+        self.toggle_tab_buttons(False)
+        self.toggle_graph_buttons(False)
         self.widget.pause_collection_btn.setText("Pause")
         self.save_current_pv_values()
+        caput(detector_pvs['detector_shutter_control'], detector_values['detector_shutter_control_none'])
         theta_values, ev_values = self.prepare_theta_values()
         exp_time = float(self.widget.time_per_step_le.text())
         num_repeats = self.widget.num_repeats_sb.value()
@@ -159,8 +166,11 @@ class MeasurementController(QtCore.QObject):
 
         self.restore_old_pv_values()
         self.toggle_measurement_buttons(True)
+        self.toggle_tab_buttons(True)
+        self.toggle_graph_buttons(True)
         self.export_raw_data()
         self.backup_file.close()
+        caput(detector_pvs['detector_shutter_control'], detector_values['detector_shutter_control_epics_pv'])
 
     def prepare_backup_file(self):
         backup_file_name = 'backup.txt'
@@ -204,16 +214,23 @@ class MeasurementController(QtCore.QObject):
         num_steps = len(theta_values)
         theta_reversed = False
         self.prepare_roi(theta_values[0])
+        caput(general_pvs['table_shutter'], general_values['table_shutter_open'])
         for ind in range(num_repeats):
             theta_ind = 0
             for theta in theta_values:
                 self.clear_data_before_collecting()
                 while self.collection_paused:
+                    if caget(general_pvs['table_shutter_status'],
+                             as_string=False) == general_values['table_shutter_status_open']:
+                        caput(general_pvs['table_shutter'], general_values['table_shutter_close'])
                     if self.collection_aborted:
                         break
                     time.sleep(0.1)
                 if self.collection_aborted:
                     break
+                if caget(general_pvs['table_shutter_status'],
+                         as_string=False) == general_values['table_shutter_status_closed']:
+                    caput(general_pvs['table_shutter'], general_values['table_shutter_open'], wait=True)
                 roi_start = self.model.theta_to_roi(theta)[0]
 
                 caput(motor_pvs['theta'], theta, wait=True)
@@ -222,6 +239,9 @@ class MeasurementController(QtCore.QObject):
                 next_file_name = self.get_next_file_name()
                 self.widget.update_current_values(theta, self.model.theta_to_ev(theta), next_file_name)
                 QtWidgets.QApplication.processEvents()
+
+                comments = str(ind + 1) + ' of ' + str(num_repeats)
+                caput(detector_pvs['comments'], comments, wait=True)
                 single_collection_thread = Thread(target=self.start_single_collection_on_sub_thread, kwargs={
                                        'exp_time': exp_time
                                    })
@@ -237,6 +257,7 @@ class MeasurementController(QtCore.QObject):
                 break
             theta_values = np.flipud(theta_values)
             theta_reversed = not theta_reversed
+        caput(general_pvs['table_shutter'], general_values['table_shutter_close'])
         self.collection_aborted = False
         self.collection_paused = False
 
@@ -292,6 +313,18 @@ class MeasurementController(QtCore.QObject):
         self.widget.abort_collection_btn.setEnabled(not toggle)
         self.widget.pause_collection_btn.setVisible(not toggle)
         self.widget.pause_collection_btn.setEnabled(not toggle)
+
+    def toggle_tab_buttons(self, toggle):
+        self.main_widget.collection_tab_btn.setEnabled(toggle)
+        self.main_widget.calibration_tab_btn.setEnabled(toggle)
+        self.main_widget.epics_config_btn.setEnabled(toggle)
+
+    def toggle_graph_buttons(self, toggle):
+        self.main_widget.graph_widget.current_spectrum_sb.setEnabled(toggle)
+        self.main_widget.graph_widget.graph_units_list.setEnabled(toggle)
+        self.main_widget.graph_widget.graph_normalize_list.setEnabled(toggle)
+        self.main_widget.graph_widget.graph_export_data_btn.setEnabled(toggle)
+        self.main_widget.graph_widget.graph_export_image_btn.setEnabled(toggle)
 
     def save_current_pv_values(self):
         self.old_pv_values = {}
@@ -353,3 +386,19 @@ class MeasurementController(QtCore.QObject):
         settings.setValue("num_repeats", str(self.widget.num_repeats_sb.value()))
         settings.setValue("export_data_directory", self.model.current_directories['export_data_directory'])
         settings.setValue("export_image_directory", self.model.current_directories['export_image_directory'])
+
+    def file_dir_changed(self):
+        caput(detector_pvs['set_TIFF_base_dir'], self.widget.file_dir_le.text())
+
+    def file_name_changed(self):
+        caput(detector_pvs['set_TIFF_base_name'], self.widget.file_name_le.text())
+
+    def file_next_number_changed(self):
+        caput(detector_pvs['set_TIFF_next_number'], self.widget.start_number_le.text())
+
+    def go_to_7058_ev_clicked(self):
+        theta = 66.184
+        roi_start = self.model.theta_to_roi(theta)[0]
+
+        caput(motor_pvs['theta'], theta, wait=True)
+        caput(detector_pvs['roi_start'], roi_start, wait=True)
