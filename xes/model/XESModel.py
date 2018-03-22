@@ -3,6 +3,8 @@ import math
 import numpy as np
 from qtpy import QtCore
 from .calib import detector_calibration
+from PIL import Image
+from .XESSpectrum import XESSpectrum
 
 Si_a = 5.431E-10
 Si_h = 4
@@ -18,10 +20,12 @@ class XESModel(QtCore.QObject):
     def __init__(self):
         super(XESModel, self).__init__()
         self.current_directories = {
+            'raw_image_directory': os.getcwd(),
             'export_image_directory': os.getcwd(),
             'export_data_directory': os.getcwd(),
         }
         self.calibration = detector_calibration.copy()
+        self.xes_spectra = []  # type: list[XESSpectrum]
 
     def theta_to_ev(self, theta):
         d_hkl = self.d_hkl(Si_a, Si_h, Si_k, Si_l)
@@ -49,6 +53,65 @@ class XESModel(QtCore.QObject):
         roi_start = calib['roi_start'] + calib['slope'] * (theta - calib['theta_0'])
         roi_end = roi_start + calib['roi_width']
         return roi_start, roi_end
+
+    def open_files(self, ind, file_names):
+        theta_min = 90.0
+        theta_max = 0.0
+        theta_values = []
+        for raw_image_file in file_names:
+            filename = str(raw_image_file)
+            img_file = open(filename, 'rb')
+            im = Image.open(img_file)
+            # self.xes_spectra[ind].raw_images.append(np.array(im)[::-1])
+            self.xes_spectra[ind].raw_images_info.append(self._get_file_info(im))
+            self.xes_spectra[ind].raw_images_info[-1]['File Name'] = filename
+            theta = float(self.xes_spectra[ind].raw_images_info[-1]['XES angle'])
+            if theta < theta_min:
+                theta_min = theta
+            if theta > theta_max:
+                theta_max = theta
+
+            if theta not in theta_values:
+                theta_values.append(theta)
+
+            im.close()
+            img_file.close()
+
+        self.xes_spectra[ind].theta_values = list(theta_values)
+
+    def _get_file_info(self, image):
+        result = {}
+        tags = image.tag
+
+        useful_tags = ['XES angle:', 'Ion chamber2:', 'ID RingCurrent:', 'Date:', 'Exposure time(s):']
+
+        try:
+            tag_values = tags.itervalues()
+        except AttributeError:
+            tag_values = tags.values()
+
+        for value in tag_values:
+            for key in useful_tags:
+                if key in str(value):
+                    k, v = str(value[0]).split(':', 1)
+                    result[str(k)] = v
+        return result
+
+    def add_data_set_to_spectrum(self, ind):
+        current_spectrum = self.xes_spectra[ind]  # type: XESSpectrum
+        for image_info in current_spectrum.raw_images_info:
+            file_name = image_info['File Name']
+            theta = float(image_info['XES angle'])
+            theta_ind = current_spectrum.theta_values.index(theta)
+            counts = 1
+            exp_time = float(image_info['Exposure time(s)'])
+            c_time = image_info['Date']
+            ic1 = 1
+            ic2 = float(image_info['Ion chamber2'])
+            aps_beam = float(image_info['ID RingCurrent'])
+
+            current_spectrum.add_data(file_name, theta_ind, theta, counts, exp_time, c_time, ic1, ic2, aps_beam,
+                                      live_data=False)
 
     @staticmethod
     def d_hkl(a, hh, kk, ll):

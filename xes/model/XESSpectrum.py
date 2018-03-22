@@ -19,8 +19,10 @@ class XESSpectrum(QtCore.QObject):
         self.theta_values = []
         self.num_repeats = 0
         self.backup_file = None
+        self.raw_images = []
+        self.raw_images_info = []
 
-    def add_data(self, file_name, theta_ind, theta, counts, exp_time, time, ic1, ic2, aps_beam):
+    def add_data(self, file_name, theta_ind, theta, counts, exp_time, time, ic1, ic2, aps_beam, live_data=True):
         new_data = OrderedDict()
         new_data['file_name'] = file_name
         new_data['theta_ind'] = theta_ind
@@ -39,8 +41,9 @@ class XESSpectrum(QtCore.QObject):
         if aps_beam > self._max_norm['APS']:
             self._max_norm['APS'] = aps_beam
         self._all_data.append(new_data.copy())
-        print(new_data)
-        self.write_data_point_to_file(self.backup_file, new_data)
+        # print(new_data)
+        if live_data:
+            self.write_data_point_to_file(self.backup_file, new_data)
 
     def gather_data_for_theta(self, theta_ind):
         counts = 0
