@@ -113,6 +113,13 @@ class XESModel(QtCore.QObject):
             current_spectrum.add_data(file_name, theta_ind, theta, counts, exp_time, c_time, ic1, ic2, aps_beam,
                                       live_data=False)
 
+    def sum_rect_roi(self, im_data, roi_start, roi_width, roi_left, roi_range):
+        roi_data = im_data[roi_left:(roi_left + roi_range+1), roi_start:(roi_start+roi_width+1)]
+        return roi_data.sum()
+
+    def sum_general_roi(self, im_data, roi):
+        return im_data[roi].sum()
+
     @staticmethod
     def d_hkl(a, hh, kk, ll):
         d = a / np.sqrt(hh**2 + kk**2 + ll**2)

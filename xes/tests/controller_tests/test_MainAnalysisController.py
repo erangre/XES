@@ -44,14 +44,19 @@ class TestMeasurementController(QtTest):
         found_theta_values = self.model.xes_spectra[-1].theta_values
         for theta, found_theta in zip(theta_values, found_theta_values):
             self.assertAlmostEqual(theta, found_theta, 3)
-        print(self.model.xes_spectra[-1].all_data)
-        self.fail()
+
         # sorted_theta_values = np.sort(theta_values)
         # sorted_found_theta_values = np.sort(found_theta_values)
         # # self.assertTrue(np.array_equal(np.sort(np.around(theta_values, 3)),
         # #                                np.sort(np.around(self.model.xes_spectra[-1].theta_values, 3))))
         # for theta, found_theta in zip(sorted_theta_values, sorted_found_theta_values):
         #     self.assertAlmostEqual(theta, found_theta, 3)
+
+    def test_load_files_adds_all_files_as_data_points(self):
+        file_list = self.helper_load_fe_wire_files()
+        for file_name, data_point in zip(file_list, self.model.xes_spectra[-1].all_data):
+            self.assertEqual(file_name, data_point['file_name'])
+
 
     def helper_load_fe_wire_files(self):
         fe_wire_data_path = os.path.join(data_path, 'Fe_Wire')
