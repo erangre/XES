@@ -30,4 +30,4 @@ class RawImageController(QtCore.QObject):
         self.setup_connections()
 
     def setup_connections(self):
-        pass
+        self.widget.data_img_item.mou
