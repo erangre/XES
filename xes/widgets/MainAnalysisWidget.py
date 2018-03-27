@@ -3,7 +3,8 @@
 from qtpy import QtWidgets, QtGui, QtCore
 # from .RawDataWidget import RawDataWidget
 from .CalibrationWidget import CalibrationWidget
-from.GraphWidget import GraphWidget
+from .GraphWidget import GraphWidget
+from .RawImageWidget import RawImageWidget
 
 
 class MainAnalysisWidget(QtWidgets.QWidget):
@@ -35,7 +36,7 @@ class MainAnalysisWidget(QtWidgets.QWidget):
         self._tab_layout.addWidget(self.calibration_tab_btn)
 
         self.graph_widget = GraphWidget()
-        # self.raw_data_widget = RawDataWidget()
+        self.raw_image_widget = RawImageWidget()
         self.calibration_widget = CalibrationWidget()
 
         self._layout.addLayout(self._files_layout)

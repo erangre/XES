@@ -15,7 +15,7 @@ c = 299792458
 
 
 class XESModel(QtCore.QObject):
-    # my_signal = QtCore.Signal()
+    image_changed = QtCore.Signal()
 
     def __init__(self):
         super(XESModel, self).__init__()
@@ -26,6 +26,8 @@ class XESModel(QtCore.QObject):
         }
         self.calibration = detector_calibration.copy()
         self.xes_spectra = []  # type: list[XESSpectrum]
+        self.current_spectrum = None
+        self.im_data = None
 
     def theta_to_ev(self, theta):
         d_hkl = self.d_hkl(Si_a, Si_h, Si_k, Si_l)
@@ -98,11 +100,11 @@ class XESModel(QtCore.QObject):
         return result
 
     def add_data_set_to_spectrum(self, ind):
-        current_spectrum = self.xes_spectra[ind]  # type: XESSpectrum
-        for image_info in current_spectrum.raw_images_info:
+        self.current_spectrum = self.xes_spectra[ind]  # type: XESSpectrum
+        for image_info in self.current_spectrum.raw_images_info:
             file_name = image_info['File Name']
             theta = float(image_info['XES angle'])
-            theta_ind = current_spectrum.theta_values.index(theta)
+            theta_ind = self.current_spectrum.theta_values.index(theta)
             counts = 1
             exp_time = float(image_info['Exposure time(s)'])
             c_time = image_info['Date']
@@ -110,8 +112,8 @@ class XESModel(QtCore.QObject):
             ic2 = float(image_info['Ion chamber2'])
             aps_beam = float(image_info['ID RingCurrent'])
 
-            current_spectrum.add_data(file_name, theta_ind, theta, counts, exp_time, c_time, ic1, ic2, aps_beam,
-                                      live_data=False)
+            self.current_spectrum.add_data(file_name, theta_ind, theta, counts, exp_time, c_time, ic1, ic2, aps_beam,
+                                           live_data=False)
 
     def sum_rect_roi(self, im_data, roi_start, roi_width, roi_left, roi_range):
         roi_data = im_data[roi_left:(roi_left + roi_range+1), roi_start:(roi_start+roi_width+1)]
@@ -119,6 +121,16 @@ class XESModel(QtCore.QObject):
 
     def sum_general_roi(self, im_data, roi):
         return im_data[roi].sum()
+
+    def set_current_image(self, ind):
+        file_name = self.current_spectrum.all_data[ind]['file_name']
+        img_file = open(file_name, 'rb')
+        im = Image.open(img_file)
+        self.im_data = np.array(im)[::-1]
+
+        im.close()
+        img_file.close()
+        self.image_changed.emit()
 
     @staticmethod
     def d_hkl(a, hh, kk, ll):

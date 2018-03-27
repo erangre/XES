@@ -8,6 +8,7 @@ from ..widgets.MainAnalysisWidget import MainAnalysisWidget
 from ..widgets.UtilityWidgets import open_files_dialog
 from .GraphController import GraphController
 from .CalibrationController import CalibrationController
+from .RawImageController import RawImageController
 
 from ..model.XESModel import XESModel
 from ..model.XESSpectrum import XESSpectrum
@@ -19,6 +20,7 @@ class MainAnalysisController(object):
         self.model = XESModel()
         self.graph_controller = GraphController(widget=self.widget, model=self.model)
         self.calibration_controller = CalibrationController(widget=self.widget, model=self.model)
+        self.raw_image_controller = RawImageController(widget=self.widget, model=self.model)
         self.setup_connections()
 
         self.current_spectrum = None
@@ -43,6 +45,7 @@ class MainAnalysisController(object):
         self.widget.load_raw_data_files_btn.clicked.connect(self.load_raw_data_files_clicked)
         self.widget.raw_data_tab_btn.clicked.connect(self.switch_tabs)
         self.widget.calibration_tab_btn.clicked.connect(self.switch_tabs)
+        self.model.image_changed.connect(self.image_changed)
 
     def switch_tabs(self):
         if self.widget.raw_data_tab_btn.isChecked():
@@ -69,6 +72,9 @@ class MainAnalysisController(object):
             self.current_spectrum = self.model.xes_spectra[-1]
             self.model.open_files(ind=-1, file_names=file_names)
             self.model.add_data_set_to_spectrum(ind=-1)
+
+    def image_changed(self):
+        self.widget.raw_image_widget.load_image(self.model.im_data)
 
     def load_settings(self):
         self.calibration_controller.load_settings(self.xes_settings)

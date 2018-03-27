@@ -57,7 +57,6 @@ class TestMeasurementController(QtTest):
         for file_name, data_point in zip(file_list, self.model.xes_spectra[-1].all_data):
             self.assertEqual(file_name, data_point['file_name'])
 
-
     def helper_load_fe_wire_files(self):
         fe_wire_data_path = os.path.join(data_path, 'Fe_Wire')
         file_list = sorted(glob.glob(os.path.join(fe_wire_data_path, 'FeWire_*.tif')))
