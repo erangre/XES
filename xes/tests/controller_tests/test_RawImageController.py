@@ -64,10 +64,11 @@ class TestRawImageController(QtTest):
 
         file_list = self.helper_load_fe_wire_files()
         self.model.set_current_image(ind)
+        state = self.model.current_roi_data[x][y]
 
         self.controller.process_mouse_left_clicked(x, y)
 
-        self.assertTrue(self.model.current_roi_data[x][y])
+        self.assertNotEqual(state, self.model.current_roi_data[x][y])
 
     def helper_load_fe_wire_files(self):
         fe_wire_data_path = os.path.join(data_path, 'Fe_Wire')

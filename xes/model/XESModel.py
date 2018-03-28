@@ -32,6 +32,7 @@ class XESModel(QtCore.QObject):
         self.current_spectrum_ind = None
         self.im_data = None
         self.current_roi_data = None
+        self.base_rois = []
 
     def theta_to_ev(self, theta):
         d_hkl = self.d_hkl(Si_a, Si_h, Si_k, Si_l)
@@ -54,8 +55,10 @@ class XESModel(QtCore.QObject):
         d_theta = d_theta_rad*180.0/np.pi
         return d_theta
 
-    def theta_to_roi(self, theta, calib=detector_calibration):
-        calib = self.calibration
+    def theta_to_roi(self, theta, calib=None):
+        if calib is None:
+            calib = self.calibration
+
         roi_start = calib['roi_start'] + calib['slope'] * (theta - calib['theta_0'])
         roi_end = roi_start + calib['roi_width']
         return roi_start, roi_end
@@ -65,6 +68,7 @@ class XESModel(QtCore.QObject):
         theta_max = 0.0
         theta_values = []
         self.rois.append(OrderedDict())
+        self.base_rois.append(None)
         for raw_image_file in file_names:
             filename = str(raw_image_file)
             img_file = open(filename, 'rb')
@@ -80,12 +84,28 @@ class XESModel(QtCore.QObject):
 
             if theta not in theta_values:
                 theta_values.append(theta)
-                self.rois[-1][theta] = np.zeros_like(np.array(im)[::-1], dtype=bool)
+                if self.base_rois[-1] is None:
+                    im_shape = np.array(im)[::-1].shape
+                    self.prepare_basic_roi(im_shape)
+                self.rois[-1][theta] = self.prepare_roi_for_theta(theta)
 
             im.close()
             img_file.close()
 
         self.xes_spectra[ind].theta_values = list(theta_values)
+
+    def prepare_basic_roi(self, im_shape):
+        self.base_rois[-1] = np.zeros(shape=im_shape, dtype=bool)
+        for col in range(int(self.calibration['roi_width'])):
+            self.base_rois[-1][:, col] = True
+
+    def prepare_roi_for_theta(self, theta):
+        # roi_array = np.zeros(shape=im_shape, dtype=bool)
+        roi_start, roi_end = self.theta_to_roi(theta)
+        # for roi_column in range(int(roi_start), int(roi_end)):
+        #     roi_array[:, roi_column] = True
+        roi_array = np.roll(self.base_rois[-1], int(roi_start), axis=1)
+        return roi_array
 
     def _get_file_info(self, image):
         result = {}

@@ -1,9 +1,11 @@
 import unittest
 import os
+import glob
 from PIL import Image
 
 from ..utility import QtTest
 from ...model.XESModel import XESModel
+from ...model.XESSpectrum import XESSpectrum
 
 from ...model.calib import detector_calibration
 
@@ -14,7 +16,7 @@ unittest_path = os.path.dirname(__file__)
 data_path = os.path.join(unittest_path, '../data')
 
 
-class ConverterTest(QtTest):
+class ROITest(QtTest):
     def setUp(self):
         self.model = XESModel()
 
@@ -71,6 +73,23 @@ class ConverterTest(QtTest):
 
         self.helper_close_image_file()
 
+    def test_roi_for_theta(self):
+        ind = 10
+        self.model.calibration = {
+            'roi_left': 0.0,
+            'roi_range': 195.0,
+            'roi_start': 13061.0,
+            'roi_width': 10.0,
+            'slope': -192.54,
+            'theta_0': 0.3,
+        }
+        files_list = self.helper_load_fe_wire_files_into_model()
+        self.model.set_current_image(ind)
+        roi_start, roi_end = self.model.theta_to_roi(self.model.current_spectrum.all_data[ind]['theta'])
+        self.assertFalse(self.model.current_roi_data[0][int(roi_start)-1])
+        self.assertTrue(self.model.current_roi_data[0][int(roi_start)])
+        self.assertTrue(self.model.current_roi_data[0][int(roi_start)]+1)
+
     def helper_read_example_image(self):
         filename = os.path.normpath(os.path.join(data_path, 'FeWire_001.tif'))
         self.img_file = open(filename, 'rb')
@@ -81,6 +100,14 @@ class ConverterTest(QtTest):
     def helper_close_image_file(self):
         self.im.close()
         self.img_file.close()
+
+    def helper_load_fe_wire_files_into_model(self):
+        fe_wire_data_path = os.path.join(data_path, 'Fe_Wire')
+        file_list = sorted(glob.glob(os.path.join(fe_wire_data_path, 'FeWire_*.tif')))
+        self.model.xes_spectra.append(XESSpectrum())
+        self.model.open_files(-1, file_list)
+        self.model.add_data_set_to_spectrum(-1)
+        return file_list
 
 
 if __name__ == '__main__':
