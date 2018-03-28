@@ -4,6 +4,7 @@ import numpy as np
 from qtpy import QtCore
 from .calib import detector_calibration
 from PIL import Image
+from collections import OrderedDict
 from .XESSpectrum import XESSpectrum
 
 Si_a = 5.431E-10
@@ -26,8 +27,11 @@ class XESModel(QtCore.QObject):
         }
         self.calibration = detector_calibration.copy()
         self.xes_spectra = []  # type: list[XESSpectrum]
+        self.rois = []
         self.current_spectrum = None
+        self.current_spectrum_ind = None
         self.im_data = None
+        self.current_roi_data = None
 
     def theta_to_ev(self, theta):
         d_hkl = self.d_hkl(Si_a, Si_h, Si_k, Si_l)
@@ -60,6 +64,7 @@ class XESModel(QtCore.QObject):
         theta_min = 90.0
         theta_max = 0.0
         theta_values = []
+        self.rois.append(OrderedDict())
         for raw_image_file in file_names:
             filename = str(raw_image_file)
             img_file = open(filename, 'rb')
@@ -75,6 +80,7 @@ class XESModel(QtCore.QObject):
 
             if theta not in theta_values:
                 theta_values.append(theta)
+                self.rois[-1][theta] = np.zeros_like(np.array(im)[::-1], dtype=bool)
 
             im.close()
             img_file.close()
@@ -101,6 +107,7 @@ class XESModel(QtCore.QObject):
 
     def add_data_set_to_spectrum(self, ind):
         self.current_spectrum = self.xes_spectra[ind]  # type: XESSpectrum
+        self.current_spectrum_ind = ind
         for image_info in self.current_spectrum.raw_images_info:
             file_name = image_info['File Name']
             theta = float(image_info['XES angle'])
@@ -127,6 +134,9 @@ class XESModel(QtCore.QObject):
         img_file = open(file_name, 'rb')
         im = Image.open(img_file)
         self.im_data = np.array(im)[::-1]
+
+        theta = self.current_spectrum.all_data[ind]['theta']
+        self.current_roi_data = self.rois[self.current_spectrum_ind][theta]
 
         im.close()
         img_file.close()

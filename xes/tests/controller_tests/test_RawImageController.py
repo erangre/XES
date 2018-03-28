@@ -46,12 +46,28 @@ class TestRawImageController(QtTest):
         im_data = self.helper_load_single_image_data(file_list[ind])
 
         self.model.set_current_image(ind)
-        raw_image_data = self.widget.img_data
+        raw_image_data = self.widget.img_view.img_data
 
         self.assertTrue(np.array_equal(im_data, raw_image_data))
 
-    def test_clicking_on_image_changes_roi(self):
-        pass
+    def test_clicking_on_images_shows_position(self):
+        x = 100
+        y = 24
+        self.controller.process_mouse_left_clicked(x, y)
+        self.assertEqual(x, int(self.widget.x_pos_pixel_lbl.text()))
+        self.assertEqual(y, int(self.widget.y_pos_pixel_lbl.text()))
+
+    def test_clicking_on_image_modifies_roi(self):
+        x = 100
+        y = 24
+        ind = 0
+
+        file_list = self.helper_load_fe_wire_files()
+        self.model.set_current_image(ind)
+
+        self.controller.process_mouse_left_clicked(x, y)
+
+        self.assertTrue(self.model.current_roi_data[x][y])
 
     def helper_load_fe_wire_files(self):
         fe_wire_data_path = os.path.join(data_path, 'Fe_Wire')

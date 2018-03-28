@@ -82,5 +82,6 @@ class ConverterTest(QtTest):
         self.im.close()
         self.img_file.close()
 
+
 if __name__ == '__main__':
     unittest.main()
