@@ -42,7 +42,7 @@ class MainAnalysisWidget(QtWidgets.QWidget):
         self._layout.addLayout(self._files_layout)
         self._layout.addWidget(self.graph_widget)
         self._layout.addLayout(self._tab_layout)
-        # self._layout.addWidget(self.raw_data_widget)
+        self._layout.addWidget(self.raw_image_widget)
         self._layout.addWidget(self.calibration_widget)
 
         self.setLayout(self._layout)

@@ -53,12 +53,17 @@ class TestRawImageController(QtTest):
     def test_clicking_on_images_shows_position(self):
         x = 100
         y = 24
+        ind = 0
+
+        file_list = self.helper_load_fe_wire_files()
+        self.model.set_current_image(ind)
+
         self.controller.process_mouse_left_clicked(x, y)
         self.assertEqual(x, int(self.widget.x_pos_pixel_lbl.text()))
         self.assertEqual(y, int(self.widget.y_pos_pixel_lbl.text()))
 
     def test_clicking_on_image_modifies_roi(self):
-        x = 100
+        x = 200
         y = 24
         ind = 0
 

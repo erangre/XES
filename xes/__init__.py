@@ -73,7 +73,7 @@ def main():
     if _platform == "linux" or _platform == "linux2" or _platform == "win32" or _platform == 'cygwin':
         app.setStyle('plastique')
     if sys.argv[1] == 'analysis' or sys.argv[1] == 'Analysis':
-        from .controller.MainAnaysisController import MainAnalysisController
+        from .controller.MainAnalysisController import MainAnalysisController
         controller = MainAnalysisController()
         controller.show_window()
     else:

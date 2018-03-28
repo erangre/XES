@@ -58,8 +58,7 @@ class XESModel(QtCore.QObject):
     def theta_to_roi(self, theta, calib=None):
         if calib is None:
             calib = self.calibration
-
-        roi_start = calib['roi_start'] + calib['slope'] * (theta - calib['theta_0'])
+        roi_start = calib['roi_start'] + calib['slope'] * (theta - calib['theta_zero'])
         roi_end = roi_start + calib['roi_width']
         return roi_start, roi_end
 

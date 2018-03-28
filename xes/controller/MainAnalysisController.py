@@ -49,10 +49,10 @@ class MainAnalysisController(object):
 
     def switch_tabs(self):
         if self.widget.raw_data_tab_btn.isChecked():
-            self.widget.raw_data_widget.setVisible(True)
-            # self.widget.calibration_widget.setVisible(False)
+            self.widget.raw_image_widget.setVisible(True)
+            self.widget.calibration_widget.setVisible(False)
         elif self.widget.calibration_tab_btn.isChecked():
-            # self.widget.raw_data_widget.setVisible(False)
+            self.widget.raw_image_widget.setVisible(False)
             self.widget.calibration_widget.setVisible(True)
 
     def load_raw_data_files_clicked(self):
@@ -72,6 +72,7 @@ class MainAnalysisController(object):
             self.current_spectrum = self.model.xes_spectra[-1]
             self.model.open_files(ind=-1, file_names=file_names)
             self.model.add_data_set_to_spectrum(ind=-1)
+            self.model.set_current_image(0)
 
     def image_changed(self):
         self.widget.raw_image_widget.load_image(self.model.im_data)

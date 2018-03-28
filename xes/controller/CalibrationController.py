@@ -38,7 +38,7 @@ class CalibrationController(QtCore.QObject):
         self.widget.roi_width_sb.valueChanged.connect(self.roi_width_value_changed)
 
     def theta_zero_edit_finished(self):
-        self.model.calibration['theta_0'] = float(self.widget.theta_zero_le.text())
+        self.model.calibration['theta_zero'] = float(self.widget.theta_zero_le.text())
 
     def slope_edit_finished(self):
         self.model.calibration['slope'] = float(self.widget.slope_le.text())
@@ -59,32 +59,32 @@ class CalibrationController(QtCore.QObject):
         theta_zero = settings.value("theta_zero", defaultValue=None)
         if theta_zero is not None:
             self.widget.theta_zero_le.setText(theta_zero)
-            self.model.calibration['theta_zero'] = theta_zero
+            self.model.calibration['theta_zero'] = float(theta_zero)
 
         slope = settings.value("slope", defaultValue=None)
         if slope is not None:
             self.widget.slope_le.setText(slope)
-            self.model.calibration['slope'] = slope
+            self.model.calibration['slope'] = float(slope)
 
         roi_start = settings.value("roi_start", defaultValue=None)
         if roi_start is not None:
             self.widget.roi_start_sb.setValue(int(roi_start))
-            self.model.calibration['roi_start'] = roi_start
+            self.model.calibration['roi_start'] = int(roi_start)
 
         roi_width = settings.value("roi_width", defaultValue=None)
         if roi_width is not None:
             self.widget.roi_width_sb.setValue(int(roi_width))
-            self.model.calibration['roi_width'] = roi_width
+            self.model.calibration['roi_width'] = int(roi_width)
 
         roi_left = settings.value("roi_left", defaultValue=None)
         if roi_left is not None:
             self.widget.roi_left_sb.setValue(int(roi_left))
-            self.model.calibration['roi_left'] = roi_left
+            self.model.calibration['roi_left'] = int(roi_left)
 
         roi_range = settings.value("roi_range", defaultValue=None)
         if roi_range is not None:
             self.widget.roi_range_sb.setValue(int(roi_range))
-            self.model.calibration['roi_range'] = roi_range
+            self.model.calibration['roi_range'] = int(roi_range)
 
     def save_settings(self, settings):
         settings.setValue("theta_zero", self.widget.theta_zero_le.text())

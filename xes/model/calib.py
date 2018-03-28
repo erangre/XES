@@ -4,5 +4,5 @@ detector_calibration = {
     'roi_start': 13061.0,
     'roi_width': 17.0,
     'slope': -192.54,
-    'theta_0': 0.3,
+    'theta_zero': 0.3,
 }

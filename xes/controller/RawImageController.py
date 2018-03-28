@@ -31,8 +31,13 @@ class RawImageController(QtCore.QObject):
 
     def setup_connections(self):
         self.widget.img_view.mouse_left_clicked.connect(self.process_mouse_left_clicked)
+        self.widget.img_view.mouse_moved.connect(self.process_mouse_moved)
 
     def process_mouse_left_clicked(self, x, y):
         self.widget.x_pos_pixel_lbl.setText(str(x))
         self.widget.y_pos_pixel_lbl.setText(str(y))
         self.model.current_roi_data[x][y] = not self.model.current_roi_data[x][y]
+
+    def process_mouse_moved(self, x, y):
+        self.widget.hover_x_pos_pixel_lbl.setText(str(x))
+        self.widget.hover_y_pos_pixel_lbl.setText(str(y))
