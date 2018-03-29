@@ -2,8 +2,9 @@
 
 from qtpy import QtWidgets, QtGui, QtCore
 import pyqtgraph as pg
+import os
 import numpy as np
-from .ImgWidget import ImgWidget
+from .ImgWidget import ImgWidget, MaskImgWidget
 
 
 class RawImageWidget(QtWidgets.QWidget):
@@ -13,16 +14,18 @@ class RawImageWidget(QtWidgets.QWidget):
         self._layout = QtWidgets.QVBoxLayout()
 
         self.prev_raw_image_btn = QtWidgets.QPushButton('Previous')
+        self.raw_image_list = QtWidgets.QComboBox()
         self.next_raw_image_btn = QtWidgets.QPushButton('Next')
 
         self._browsing_layout = QtWidgets.QHBoxLayout()
         self._browsing_layout.addWidget(self.prev_raw_image_btn)
+        self._browsing_layout.addWidget(self.raw_image_list)
         self._browsing_layout.addWidget(self.next_raw_image_btn)
 
         self._layout.addLayout(self._browsing_layout)
 
         self.img_pg_layout = pg.GraphicsLayoutWidget()
-        self.img_view = ImgWidget(self.img_pg_layout, orientation='vertical')
+        self.img_view = MaskImgWidget(self.img_pg_layout, orientation='vertical')
 
         self._layout.addWidget(self.img_pg_layout)
 
@@ -66,3 +69,10 @@ class RawImageWidget(QtWidgets.QWidget):
     def load_image(self, img_data):
         self.img_view.img_data = img_data
         self.img_view.data_img_item.setImage(img_data.T)
+
+    def update_raw_image_list(self, file_names, ev_values):
+        ind = 0
+        for file_name, ev_value in zip(file_names, ev_values):
+            image_string = os.path.basename(file_name) + '_' + '{:.2f}'.format(ev_value) + '_eV'
+            self.raw_image_list.addItem(image_string, ind)
+            ind += 1

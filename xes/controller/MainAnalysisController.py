@@ -72,10 +72,22 @@ class MainAnalysisController(object):
             self.current_spectrum = self.model.xes_spectra[-1]
             self.model.open_files(ind=-1, file_names=file_names)
             self.model.add_data_set_to_spectrum(ind=-1)
+            self.populate_raw_image_list(file_names)
+
+            self.widget.raw_image_widget.img_view.activate_mask()
             self.model.set_current_image(0)
+
+    def populate_raw_image_list(self, file_names):
+        all_theta_values = self.model.current_spectrum.get_data(column='theta')
+        ev_values = []
+        for theta in all_theta_values:
+            ev_values.append(self.model.theta_to_ev(theta))
+        self.widget.raw_image_widget.update_raw_image_list(file_names, ev_values)
 
     def image_changed(self):
         self.widget.raw_image_widget.load_image(self.model.im_data)
+        self.widget.raw_image_widget.img_view.set_color([0, 255, 0, 100])
+        self.widget.raw_image_widget.img_view.plot_mask(self.model.current_roi_data)
 
     def load_settings(self):
         self.calibration_controller.load_settings(self.xes_settings)

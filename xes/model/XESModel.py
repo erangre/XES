@@ -163,6 +163,15 @@ class XESModel(QtCore.QObject):
         img_file.close()
         self.image_changed.emit()
 
+    def recalc_all_rois(self):
+        ind = self.current_raw_im_ind
+        s_ind = self.current_spectrum_ind
+        theta = self.current_spectrum.all_data[ind]['theta']
+        roi_start, roi_end = self.theta_to_roi(theta)
+        self.base_rois[s_ind] = np.roll(self.current_roi_data, -int(roi_start))
+        for theta in self.current_spectrum.theta_values:
+            self.rois[s_ind][theta] = self.prepare_roi_for_theta(theta)
+
     @staticmethod
     def d_hkl(a, hh, kk, ll):
         d = a / np.sqrt(hh**2 + kk**2 + ll**2)

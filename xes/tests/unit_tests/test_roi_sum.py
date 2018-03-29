@@ -81,7 +81,7 @@ class ROITest(QtTest):
             'roi_start': 13061.0,
             'roi_width': 10.0,
             'slope': -192.54,
-            'theta_zero': 0.3,
+            'theta_zero': -0.3,
         }
         files_list = self.helper_load_fe_wire_files_into_model()
         self.model.set_current_image(ind)

@@ -34,6 +34,7 @@ class RawImageController(QtCore.QObject):
         self.widget.img_view.mouse_moved.connect(self.process_mouse_moved)
         self.widget.prev_raw_image_btn.clicked.connect(self.prev_raw_image_btn_clicked)
         self.widget.next_raw_image_btn.clicked.connect(self.next_raw_image_btn_clicked)
+        self.widget.raw_image_list.currentIndexChanged.connect(self.raw_image_list_item_changed)
 
     def process_mouse_left_clicked(self, x, y):
         if self.model.im_data is None:
@@ -46,6 +47,8 @@ class RawImageController(QtCore.QObject):
             self.widget.y_pos_pixel_lbl.setText(str(y))
             self.widget.int_pixel_lbl.setText(str(self.model.im_data.T[x][y]))
             self.model.current_roi_data.T[x][y] = not self.model.current_roi_data.T[x][y]
+            self.model.recalc_all_rois()
+            self.widget.img_view.plot_mask(self.model.current_roi_data)
 
     def process_mouse_moved(self, x, y):
         if self.model.im_data is None:
@@ -63,9 +66,14 @@ class RawImageController(QtCore.QObject):
         if ind is None or ind == 0:
             return
         self.model.set_current_image(ind - 1)
+        self.widget.raw_image_list.setCurrentIndex(ind - 1)
 
     def next_raw_image_btn_clicked(self):
         ind = self.model.current_raw_im_ind
-        if ind is None or ind > self.model.current_spectrum.num_data_points:
+        if ind is None or ind >= self.model.current_spectrum.num_data_points - 1:
             return
         self.model.set_current_image(ind + 1)
+        self.widget.raw_image_list.setCurrentIndex(ind + 1)
+
+    def raw_image_list_item_changed(self, ind):
+        self.model.set_current_image(ind)
