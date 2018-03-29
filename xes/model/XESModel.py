@@ -31,6 +31,7 @@ class XESModel(QtCore.QObject):
         self.current_spectrum = None
         self.current_spectrum_ind = None
         self.im_data = None
+        self.current_raw_im_ind = None
         self.current_roi_data = None
         self.base_rois = []
 
@@ -149,6 +150,7 @@ class XESModel(QtCore.QObject):
         return im_data[roi].sum()
 
     def set_current_image(self, ind):
+        self.current_raw_im_ind = ind
         file_name = self.current_spectrum.all_data[ind]['file_name']
         img_file = open(file_name, 'rb')
         im = Image.open(img_file)

@@ -12,6 +12,15 @@ class RawImageWidget(QtWidgets.QWidget):
 
         self._layout = QtWidgets.QVBoxLayout()
 
+        self.prev_raw_image_btn = QtWidgets.QPushButton('Previous')
+        self.next_raw_image_btn = QtWidgets.QPushButton('Next')
+
+        self._browsing_layout = QtWidgets.QHBoxLayout()
+        self._browsing_layout.addWidget(self.prev_raw_image_btn)
+        self._browsing_layout.addWidget(self.next_raw_image_btn)
+
+        self._layout.addLayout(self._browsing_layout)
+
         self.img_pg_layout = pg.GraphicsLayoutWidget()
         self.img_view = ImgWidget(self.img_pg_layout, orientation='vertical')
 

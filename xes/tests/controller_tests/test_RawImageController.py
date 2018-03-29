@@ -41,7 +41,7 @@ class TestRawImageController(QtTest):
 
     def test_image_shows_raw_data(self):
         # sys.excepthook = excepthook
-        ind = 0
+        ind = 20
         file_list = self.helper_load_fe_wire_files()
         im_data = self.helper_load_single_image_data(file_list[ind])
 
@@ -74,6 +74,19 @@ class TestRawImageController(QtTest):
         self.controller.process_mouse_left_clicked(x, y)
 
         self.assertNotEqual(state, self.model.current_roi_data.T[x][y])
+
+    def test_browsing_raw_data_files(self):
+        file_list = self.helper_load_fe_wire_files()
+        click_button(self.widget.next_raw_image_btn)
+        im_data = self.helper_load_single_image_data(file_list[1])
+        raw_image_data = self.widget.img_view.img_data
+
+        self.assertTrue(np.array_equal(im_data, raw_image_data))
+
+        click_button(self.widget.prev_raw_image_btn)
+        im_data = self.helper_load_single_image_data(file_list[0])
+        raw_image_data = self.widget.img_view.img_data
+        self.assertTrue(np.array_equal(im_data, raw_image_data))
 
     def helper_load_fe_wire_files(self):
         fe_wire_data_path = os.path.join(data_path, 'Fe_Wire')

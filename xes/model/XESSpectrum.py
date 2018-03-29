@@ -113,3 +113,7 @@ class XESSpectrum(QtCore.QObject):
     @property
     def all_data(self):
         return self._all_data
+
+    @property
+    def num_data_points(self):
+        return len(self.all_data)

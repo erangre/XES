@@ -32,8 +32,12 @@ class RawImageController(QtCore.QObject):
     def setup_connections(self):
         self.widget.img_view.mouse_left_clicked.connect(self.process_mouse_left_clicked)
         self.widget.img_view.mouse_moved.connect(self.process_mouse_moved)
+        self.widget.prev_raw_image_btn.clicked.connect(self.prev_raw_image_btn_clicked)
+        self.widget.next_raw_image_btn.clicked.connect(self.next_raw_image_btn_clicked)
 
     def process_mouse_left_clicked(self, x, y):
+        if self.model.im_data is None:
+            return
         x = int(x)
         y = int(y)
         im_shape = self.model.im_data.shape
@@ -44,6 +48,8 @@ class RawImageController(QtCore.QObject):
             self.model.current_roi_data.T[x][y] = not self.model.current_roi_data.T[x][y]
 
     def process_mouse_moved(self, x, y):
+        if self.model.im_data is None:
+            return
         x = int(x)
         y = int(y)
         im_shape = self.model.im_data.shape
@@ -51,3 +57,15 @@ class RawImageController(QtCore.QObject):
             self.widget.hover_x_pos_pixel_lbl.setText(str(x))
             self.widget.hover_y_pos_pixel_lbl.setText(str(y))
             self.widget.hover_int_pixel_lbl.setText(str(self.model.im_data.T[x][y]))
+
+    def prev_raw_image_btn_clicked(self):
+        ind = self.model.current_raw_im_ind
+        if ind is None or ind == 0:
+            return
+        self.model.set_current_image(ind - 1)
+
+    def next_raw_image_btn_clicked(self):
+        ind = self.model.current_raw_im_ind
+        if ind is None or ind > self.model.current_spectrum.num_data_points:
+            return
+        self.model.set_current_image(ind + 1)
