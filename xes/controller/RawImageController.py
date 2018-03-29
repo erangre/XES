@@ -34,10 +34,20 @@ class RawImageController(QtCore.QObject):
         self.widget.img_view.mouse_moved.connect(self.process_mouse_moved)
 
     def process_mouse_left_clicked(self, x, y):
-        self.widget.x_pos_pixel_lbl.setText(str(x))
-        self.widget.y_pos_pixel_lbl.setText(str(y))
-        self.model.current_roi_data[x][y] = not self.model.current_roi_data[x][y]
+        x = int(x)
+        y = int(y)
+        im_shape = self.model.im_data.shape
+        if x >= 0 and y >= 0 and x < im_shape[1] and y < im_shape[0]:
+            self.widget.x_pos_pixel_lbl.setText(str(x))
+            self.widget.y_pos_pixel_lbl.setText(str(y))
+            self.widget.int_pixel_lbl.setText(str(self.model.im_data.T[x][y]))
+            self.model.current_roi_data.T[x][y] = not self.model.current_roi_data.T[x][y]
 
     def process_mouse_moved(self, x, y):
-        self.widget.hover_x_pos_pixel_lbl.setText(str(x))
-        self.widget.hover_y_pos_pixel_lbl.setText(str(y))
+        x = int(x)
+        y = int(y)
+        im_shape = self.model.im_data.shape
+        if x >= 0 and y >= 0 and x < im_shape[1] and y < im_shape[0]:
+            self.widget.hover_x_pos_pixel_lbl.setText(str(x))
+            self.widget.hover_y_pos_pixel_lbl.setText(str(y))
+            self.widget.hover_int_pixel_lbl.setText(str(self.model.im_data.T[x][y]))
