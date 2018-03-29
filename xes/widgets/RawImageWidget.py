@@ -13,6 +13,17 @@ class RawImageWidget(QtWidgets.QWidget):
 
         self._layout = QtWidgets.QVBoxLayout()
 
+        self.reintegrate_btn = QtWidgets.QPushButton('Reintegrate')
+        self.save_roi_btn = QtWidgets.QPushButton('Save ROI')
+        self.load_roi_btn = QtWidgets.QPushButton('Load ROI')
+
+        self._roi_layout = QtWidgets.QHBoxLayout()
+        self._roi_layout.addWidget(self.reintegrate_btn)
+        self._roi_layout.addWidget(self.save_roi_btn)
+        self._roi_layout.addWidget(self.load_roi_btn)
+
+        self._layout.addLayout(self._roi_layout)
+
         self.prev_raw_image_btn = QtWidgets.QPushButton('Previous')
         self.raw_image_list = QtWidgets.QComboBox()
         self.next_raw_image_btn = QtWidgets.QPushButton('Next')

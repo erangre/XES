@@ -12,10 +12,12 @@ from ..widgets.MainAnalysisWidget import MainAnalysisWidget
 from ..widgets.RawImageWidget import RawImageWidget
 from ..model.XESModel import XESModel
 from ..model.XESSpectrum import XESSpectrum
-from ..widgets.UtilityWidgets import save_file_dialog
+from ..widgets.UtilityWidgets import save_file_dialog, open_file_dialog
 
 
 class RawImageController(QtCore.QObject):
+    roi_changed = QtCore.Signal()
+
     def __init__(self, widget, model):
         """
         :param widget:
@@ -35,6 +37,9 @@ class RawImageController(QtCore.QObject):
         self.widget.prev_raw_image_btn.clicked.connect(self.prev_raw_image_btn_clicked)
         self.widget.next_raw_image_btn.clicked.connect(self.next_raw_image_btn_clicked)
         self.widget.raw_image_list.currentIndexChanged.connect(self.raw_image_list_item_changed)
+        self.widget.reintegrate_btn.clicked.connect(self.reintegrate_btn_clicked)
+        self.widget.save_roi_btn.clicked.connect(self.save_roi_btn_clicked)
+        self.widget.load_roi_btn.clicked.connect(self.load_roi_btn_clicked)
 
     def process_mouse_left_clicked(self, x, y):
         if self.model.im_data is None:
@@ -49,6 +54,7 @@ class RawImageController(QtCore.QObject):
             self.model.current_roi_data.T[x][y] = not self.model.current_roi_data.T[x][y]
             self.model.recalc_all_rois()
             self.widget.img_view.plot_mask(self.model.current_roi_data)
+            # self.roi_changed.emit()
 
     def process_mouse_moved(self, x, y):
         if self.model.im_data is None:
@@ -77,3 +83,25 @@ class RawImageController(QtCore.QObject):
 
     def raw_image_list_item_changed(self, ind):
         self.model.set_current_image(ind)
+
+    def reintegrate_btn_clicked(self):
+        self.roi_changed.emit()
+
+    def save_roi_btn_clicked(self):
+        filename = save_file_dialog(
+            self.widget, "Save ROI data", self.model.current_directories['roi_directory'],
+            'ROI (*.roi)')
+
+        if filename is not '':
+            self.model.current_directories['roi_directory'] = os.path.dirname(filename)
+            self.model.save_roi(filename)
+
+    def load_roi_btn_clicked(self):
+        filename = open_file_dialog(
+            self.widget, "Load ROI data", self.model.current_directories['roi_directory'],
+            'ROI (*.roi)')
+
+        if filename is not '':
+            self.model.current_directories['roi_directory'] = os.path.dirname(filename)
+            self.model.load_roi(filename)
+

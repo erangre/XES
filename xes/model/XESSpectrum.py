@@ -56,13 +56,20 @@ class XESSpectrum(QtCore.QObject):
 
     def normalize_data(self, normalizer):
         normalized_counts = np.zeros(len(self.theta_values))
+        exposure_times = np.zeros(len(self.theta_values))
+        normalized_cps = np.zeros(len(self.theta_values))
         for data_point in self._all_data:
+            exposure_times[data_point['theta_ind']] += data_point['exp_time']
             if normalizer == 'Raw':
-                normalized_counts[data_point['theta_ind']] += data_point['counts'] / data_point['exp_time']
+                normalized_counts[data_point['theta_ind']] += data_point['counts']
             else:
-                normalized_counts[data_point['theta_ind']] += data_point['counts'] / data_point['exp_time'] / \
-                                                              data_point[normalizer] * self._max_norm[normalizer]
-        return normalized_counts
+                normalized_counts[data_point['theta_ind']] += (data_point['counts'] / data_point[normalizer] *
+                                                               self._max_norm[normalizer])
+
+        for ind in range(len(self.theta_values)):
+            normalized_cps[ind] = normalized_counts[ind]/exposure_times[ind]
+
+        return normalized_cps
 
     def write_data_point_to_file(self, file_handle, data_point):
         line = ''

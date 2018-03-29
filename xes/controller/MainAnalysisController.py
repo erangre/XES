@@ -46,6 +46,9 @@ class MainAnalysisController(object):
         self.widget.raw_data_tab_btn.clicked.connect(self.switch_tabs)
         self.widget.calibration_tab_btn.clicked.connect(self.switch_tabs)
         self.model.image_changed.connect(self.image_changed)
+        self.raw_image_controller.roi_changed.connect(self.update_graph_data)
+        self.graph_controller.export_data_signal.connect(self.export_data)
+
 
     def switch_tabs(self):
         if self.widget.raw_data_tab_btn.isChecked():
@@ -70,12 +73,14 @@ class MainAnalysisController(object):
             self.widget.num_files_lbl.setText(str(len(file_names)))
             self.model.xes_spectra.append(XESSpectrum())
             self.current_spectrum = self.model.xes_spectra[-1]
-            self.model.open_files(ind=-1, file_names=file_names)
+            theta_values, ev_values = self.model.open_files(ind=-1, file_names=file_names)
             self.model.add_data_set_to_spectrum(ind=-1)
             self.populate_raw_image_list(file_names)
+            self.widget.graph_widget.add_empty_xes_spectrum_to_graph(theta_values, ev_values)
 
             self.widget.raw_image_widget.img_view.activate_mask()
             self.model.set_current_image(0)
+            self.update_graph_data()
 
     def populate_raw_image_list(self, file_names):
         all_theta_values = self.model.current_spectrum.get_data(column='theta')
@@ -84,10 +89,18 @@ class MainAnalysisController(object):
             ev_values.append(self.model.theta_to_ev(theta))
         self.widget.raw_image_widget.update_raw_image_list(file_names, ev_values)
 
+    def update_graph_data(self, normalizer='Raw'):
+        self.model.recalc_all_counts()
+        normalized_counts = self.current_spectrum.normalize_data(normalizer)
+        self.widget.graph_widget.update_graph_values(normalized_counts)
+
     def image_changed(self):
         self.widget.raw_image_widget.load_image(self.model.im_data)
         self.widget.raw_image_widget.img_view.set_color([0, 255, 0, 100])
         self.widget.raw_image_widget.img_view.plot_mask(self.model.current_roi_data)
+
+    def export_data(self, filename):
+        self.model.xes_spectra[self.model.current_spectrum_ind].export_data(filename)
 
     def load_settings(self):
         self.calibration_controller.load_settings(self.xes_settings)
