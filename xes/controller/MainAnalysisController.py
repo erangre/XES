@@ -80,6 +80,7 @@ class MainAnalysisController(object):
             self.widget.graph_widget.add_empty_xes_spectrum_to_graph(theta_values, ev_values)
 
             self.widget.raw_image_widget.img_view.activate_mask()
+            self.widget.raw_image_widget.img_view.activate_mask_b()
             self.model.set_current_image(0)
             self.update_graph_data()
 
@@ -98,7 +99,10 @@ class MainAnalysisController(object):
     def image_changed(self):
         self.widget.raw_image_widget.load_image(self.model.im_data)
         self.widget.raw_image_widget.img_view.set_color([0, 255, 0, 100])
+        self.widget.raw_image_widget.img_view.set_color_b([255, 0, 0, 100])
+
         self.widget.raw_image_widget.img_view.plot_mask(self.model.current_roi_data)
+        self.widget.raw_image_widget.img_view.plot_mask_b(self.model.current_bg_roi_data)
 
     def export_data(self, filename):
         self.model.xes_spectra[self.model.current_spectrum_ind].export_data(filename)

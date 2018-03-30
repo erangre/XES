@@ -281,7 +281,9 @@ class MaskImgWidget(ImgWidget):
     def __init__(self, pg_layout, orientation='vertical'):
         super(MaskImgWidget, self).__init__(pg_layout, orientation)
         self.mask_img_item = pg.ImageItem()
+        self.mask_b_img_item = pg.ImageItem()
         self.img_view_box.addItem(self.mask_img_item)
+        self.img_view_box.addItem(self.mask_b_img_item)
         self.set_color()
         self.mask_preview_fill_color = QtGui.QColor(255, 0, 0, 150)
 
@@ -293,10 +295,23 @@ class MaskImgWidget(ImgWidget):
         if self.mask_img_item in self.img_view_box.addedItems:
             self.img_view_box.removeItem(self.mask_img_item)
 
+    def activate_mask_b(self):
+        if not self.mask_b_img_item in self.img_view_box.addedItems:
+            self.img_view_box.addItem(self.mask_b_img_item)
+
+    def deactivate_mask_b(self):
+        if self.mask_b_img_item in self.img_view_box.addedItems:
+            self.img_view_box.removeItem(self.mask_b_img_item)
+
     def plot_mask(self, mask_data):
         self.mask_data = np.int16(mask_data)
         self.mask_img_item.setImage(self.mask_data.T, autoRange=True, autoHistogramRange=True,
                                     autoLevels=True)
+
+    def plot_mask_b(self, mask_data):
+        self.mask_data = np.int16(mask_data)
+        self.mask_b_img_item.setImage(self.mask_data.T, autoRange=True, autoHistogramRange=True,
+                                      autoLevels=True)
 
     def create_color_map(self, color):
         steps = np.array([0, 1])
@@ -308,6 +323,11 @@ class MaskImgWidget(ImgWidget):
         if not color:
             color = [255, 0, 0, 255]
         self.mask_img_item.setLookupTable(self.create_color_map(color))
+
+    def set_color_b(self, color=None):
+        if not color:
+            color = [255, 0, 0, 255]
+        self.mask_b_img_item.setLookupTable(self.create_color_map(color))
 #
 #     def draw_circle(self, x=0, y=0):
 #         circle = MyCircle(x, y, 0, self.mask_preview_fill_color)

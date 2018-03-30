@@ -35,6 +35,7 @@ class XESModel(QtCore.QObject):
         self.im_data = None
         self.current_raw_im_ind = None
         self.current_roi_data = None
+        self.current_bg_roi_data = None
         self.base_rois = []
         self.base_bg_rois = []
 
@@ -112,7 +113,7 @@ class XESModel(QtCore.QObject):
 
     def prepare_basic_bg_roi(self, im_shape):
         self.base_bg_rois[-1] = np.zeros(shape=im_shape, dtype=bool)
-        for col in range(int(self.calibration['roi_width'])):
+        for col in range(-2, int(self.calibration['roi_width']) + 2):
             self.base_bg_rois[-1][:, col] = True
 
     def prepare_roi_for_theta(self, theta):
@@ -218,6 +219,7 @@ class XESModel(QtCore.QObject):
 
         theta = self.current_spectrum.all_data[ind]['theta']
         self.current_roi_data = self.rois[self.current_spectrum_ind][theta]
+        self.current_bg_roi_data = self.bg_rois[self.current_spectrum_ind][theta]
 
         im.close()
         img_file.close()
