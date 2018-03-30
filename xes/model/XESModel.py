@@ -29,12 +29,14 @@ class XESModel(QtCore.QObject):
         self.calibration = detector_calibration.copy()
         self.xes_spectra = []  # type: list[XESSpectrum]
         self.rois = []
+        self.bg_rois = []
         self.current_spectrum = None
         self.current_spectrum_ind = None
         self.im_data = None
         self.current_raw_im_ind = None
         self.current_roi_data = None
         self.base_rois = []
+        self.base_bg_rois = []
 
     def theta_to_ev(self, theta):
         d_hkl = self.d_hkl(Si_a, Si_h, Si_k, Si_l)
@@ -96,6 +98,7 @@ class XESModel(QtCore.QObject):
             img_file.close()
 
         self.xes_spectra[ind].theta_values = list(theta_values)
+        self.xes_spectra[ind].ev_values = list(ev_values)
         return theta_values, ev_values
 
     def prepare_basic_roi(self, im_shape):

@@ -17,6 +17,7 @@ class XESSpectrum(QtCore.QObject):
             'APS': 0
         }
         self.theta_values = []
+        self.ev_values = []
         self.num_repeats = 0
         self.backup_file = None
         self.raw_images = []
@@ -95,17 +96,19 @@ class XESSpectrum(QtCore.QObject):
         num_points = len(self.all_data)
         num_theta = len(self.theta_values)
         num_repeats = int(num_points/num_theta)
-        header1 = '# Theta from: ' + str(min(self.theta_values)) + ' to ' + str(max(self.theta_values)) + \
-                  ', repeating ' + str(num_repeats) + ' times\n'
+        header1 = '# Theta from: ' + str(min(self.theta_values)) + '(' + str(max(self.ev_values)) + ' eV) to ' + \
+                  str(max(self.theta_values)) + '(' + str(min(self.ev_values)) + 'eV), repeating ' + \
+                  str(num_repeats) + ' times\n'
 
         file_handle.write(header1)
-        header2 = '# Theta\tCounts\tExp. Time\n'
+        header2 = '# Theta\tEnergy\tCounts\tExp. Time\n'
         file_handle.write(header2)
 
         for ind in range(num_theta):
             theta = self.theta_values[ind]
+            ev = self.ev_values[ind]
             counts, exp_time = self.gather_data_for_theta(ind)
-            line = str(theta) + '\t' + str(counts) + '\t' + str(exp_time) + '\n'
+            line = str(theta) + '\t' + str(ev) + '\t' + str(counts) + '\t' + str(exp_time) + '\n'
             file_handle.write(line)
         file_handle.close()
 
