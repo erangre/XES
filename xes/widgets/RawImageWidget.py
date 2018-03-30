@@ -16,11 +16,13 @@ class RawImageWidget(QtWidgets.QWidget):
         self.reintegrate_btn = QtWidgets.QPushButton('Reintegrate')
         self.save_roi_btn = QtWidgets.QPushButton('Save ROI')
         self.load_roi_btn = QtWidgets.QPushButton('Load ROI')
+        self.use_bg_roi_cb = QtWidgets.QCheckBox('Use BG-ROI?')
 
         self._roi_layout = QtWidgets.QHBoxLayout()
         self._roi_layout.addWidget(self.reintegrate_btn)
         self._roi_layout.addWidget(self.save_roi_btn)
         self._roi_layout.addWidget(self.load_roi_btn)
+        self._roi_layout.addWidget(self.use_bg_roi_cb)
 
         self._layout.addLayout(self._roi_layout)
 

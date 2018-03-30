@@ -74,7 +74,8 @@ class MainAnalysisController(object):
             self.model.xes_spectra.append(XESSpectrum())
             self.current_spectrum = self.model.xes_spectra[-1]
             theta_values, ev_values = self.model.open_files(ind=-1, file_names=file_names)
-            self.model.add_data_set_to_spectrum(ind=-1)
+            self.model.add_data_set_to_spectrum(ind=-1,
+                                                use_bg_roi=self.widget.raw_image_widget.use_bg_roi_cb.isChecked())
             self.populate_raw_image_list(file_names)
             self.widget.graph_widget.add_empty_xes_spectrum_to_graph(theta_values, ev_values)
 
@@ -90,7 +91,7 @@ class MainAnalysisController(object):
         self.widget.raw_image_widget.update_raw_image_list(file_names, ev_values)
 
     def update_graph_data(self, normalizer='Raw'):
-        self.model.recalc_all_counts()
+        self.model.recalc_all_counts(use_bg_roi=self.widget.raw_image_widget.use_bg_roi_cb.isChecked())
         normalized_counts = self.current_spectrum.normalize_data(normalizer)
         self.widget.graph_widget.update_graph_values(normalized_counts)
 

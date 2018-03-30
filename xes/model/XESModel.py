@@ -72,7 +72,9 @@ class XESModel(QtCore.QObject):
         theta_values = []
         ev_values = []
         self.rois.append(OrderedDict())
+        self.bg_rois.append(OrderedDict())
         self.base_rois.append(None)
+        self.base_bg_rois.append(None)
         for raw_image_file in file_names:
             filename = str(raw_image_file)
             img_file = open(filename, 'rb')
@@ -92,7 +94,9 @@ class XESModel(QtCore.QObject):
                 if self.base_rois[-1] is None:
                     im_shape = np.array(im)[::-1].shape
                     self.prepare_basic_roi(im_shape)
+                    self.prepare_basic_bg_roi(im_shape)
                 self.rois[-1][theta] = self.prepare_roi_for_theta(theta)
+                self.bg_rois[-1][theta] = self.prepare_bg_roi_for_theta(theta)
 
             im.close()
             img_file.close()
@@ -106,12 +110,22 @@ class XESModel(QtCore.QObject):
         for col in range(int(self.calibration['roi_width'])):
             self.base_rois[-1][:, col] = True
 
+    def prepare_basic_bg_roi(self, im_shape):
+        self.base_bg_rois[-1] = np.zeros(shape=im_shape, dtype=bool)
+        for col in range(int(self.calibration['roi_width'])):
+            self.base_bg_rois[-1][:, col] = True
+
     def prepare_roi_for_theta(self, theta):
         # roi_array = np.zeros(shape=im_shape, dtype=bool)
         roi_start, roi_end = self.theta_to_roi(theta)
         # for roi_column in range(int(roi_start), int(roi_end)):
         #     roi_array[:, roi_column] = True
         roi_array = np.roll(self.base_rois[-1], int(roi_start), axis=1)
+        return roi_array
+
+    def prepare_bg_roi_for_theta(self, theta):
+        roi_start, roi_end = self.theta_to_roi(theta)
+        roi_array = np.roll(self.base_bg_rois[-1], int(roi_start), axis=1)
         return roi_array
 
     def recalc_all_rois(self):
@@ -141,14 +155,14 @@ class XESModel(QtCore.QObject):
                     result[str(k)] = v
         return result
 
-    def add_data_set_to_spectrum(self, ind):
+    def add_data_set_to_spectrum(self, ind, use_bg_roi=False):
         self.current_spectrum = self.xes_spectra[ind]  # type: XESSpectrum
         self.current_spectrum_ind = ind
         for image_info in self.current_spectrum.raw_images_info:
             file_name = image_info['File Name']
             theta = float(image_info['XES angle'])
             theta_ind = self.current_spectrum.theta_values.index(theta)
-            counts = self.calc_counts_for_file_name(file_name, theta)
+            counts = self.calc_counts_for_file_name(file_name, theta, use_bg_roi)
             exp_time = float(image_info['Exposure time(s)'])
             c_time = image_info['Date']
             ic1 = 1
@@ -162,23 +176,34 @@ class XESModel(QtCore.QObject):
         roi_data = im_data[roi_left:(roi_left + roi_range+1), roi_start:(roi_start+roi_width+1)]
         return roi_data.sum()
 
-    def recalc_all_counts(self):
+    def recalc_all_counts(self, use_bg_roi=False):
         for data_point in self.current_spectrum.all_data:
             file_name = data_point['file_name']
             theta = float(data_point['theta'])
-            data_point['counts'] = self.calc_counts_for_file_name(file_name, theta)
+            data_point['counts'] = self.calc_counts_for_file_name(file_name, theta, use_bg_roi)
 
-    def calc_counts_for_file_name(self, file_name, theta):
+    def calc_counts_for_file_name(self, file_name, theta, use_bg_roi=False):
         s_ind = self.current_spectrum_ind
 
         file_name = str(file_name)
         img_file = open(file_name, 'rb')
         im = Image.open(img_file)
         img_data = np.array(im)[::-1]
-        roi_data = self.rois[s_ind][theta]
-        counts = np.sum(img_data[roi_data])
         im.close()
         img_file.close()
+
+        roi_data = self.rois[s_ind][theta]
+        counts_roi = np.sum(img_data[roi_data])
+        if use_bg_roi:
+            total_roi_data = self.bg_rois[s_ind][theta]
+            num_pix_roi = np.sum(roi_data)
+            num_pix_bg = np.sum(total_roi_data) - num_pix_roi
+            counts_total = np.sum(img_data[total_roi_data])
+            counts_bg = counts_total - counts_roi
+            counts = counts_roi - int(counts_bg*num_pix_roi/num_pix_bg)
+        else:
+            counts = counts_roi
+
         return counts
 
     def sum_general_roi(self, im_data, roi):
