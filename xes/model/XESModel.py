@@ -68,6 +68,10 @@ class XESModel(QtCore.QObject):
         return roi_start, roi_end
 
     def open_files(self, ind, file_names):
+        self.manual_mode = False
+        if not self._test_files_for_meta_data():
+            self._manual_get_all_files_info()
+            self.manual_mode = True
         theta_min = 90.0
         theta_max = 0.0
         theta_values = []
@@ -155,6 +159,9 @@ class XESModel(QtCore.QObject):
                     k, v = str(value[0]).split(':', 1)
                     result[str(k)] = v
         return result
+
+    def _manual_get_all_files_info(self):
+        pass
 
     def add_data_set_to_spectrum(self, ind, use_bg_roi=False):
         self.current_spectrum = self.xes_spectra[ind]  # type: XESSpectrum
