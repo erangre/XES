@@ -49,6 +49,7 @@ class MainAnalysisController(object):
         self.model.image_changed.connect(self.image_changed)
         self.raw_image_controller.roi_changed.connect(self.update_graph_data)
         self.graph_controller.export_data_signal.connect(self.export_data)
+        self.graph_controller.current_spectrum_changed_signal.connect(self.current_spectrum_changed_in_graph)
         self.manual_file_info_dialog.read_list_btn.clicked.connect(self.manual_read_list_btn_clicked)
         self.manual_file_info_dialog.start_energy_le.editingFinished.connect(self.manual_file_info_num_points_changed)
         self.manual_file_info_dialog.end_energy_le.editingFinished.connect(self.manual_file_info_num_points_changed)
@@ -113,6 +114,15 @@ class MainAnalysisController(object):
 
     def export_data(self, filename):
         self.model.xes_spectra[self.model.current_spectrum_ind].export_data(filename)
+
+    def current_spectrum_changed_in_graph(self, ind):
+        self.model.current_spectrum_ind = ind
+        self.model.current_spectrum = self.model.xes_spectra[ind]
+        self.current_spectrum = self.model.current_spectrum
+        file_names = self.model.current_spectrum.get_data('file_name')
+        self.populate_raw_image_list(file_names)
+        # self.model.set_current_image(0)
+        # self.update_graph_data()
 
     def manual_file_info_mode_enabled(self, file_names):
         self.manual_file_info_dialog.file_names = file_names

@@ -84,6 +84,7 @@ class RawImageWidget(QtWidgets.QWidget):
         self.img_view.data_img_item.setImage(img_data.T)
 
     def update_raw_image_list(self, file_names, ev_values):
+        self.raw_image_list.clear()
         ind = 0
         for file_name, ev_value in zip(file_names, ev_values):
             image_string = os.path.basename(file_name) + '_' + '{:.2f}'.format(ev_value) + '_eV'
