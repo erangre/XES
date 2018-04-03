@@ -64,6 +64,8 @@ class ManualFileInfoDialog(QtWidgets.QDialog):
     def __init__(self, parent):
         super(ManualFileInfoDialog, self).__init__()
 
+        self.file_names = []
+
         self._parent = parent
         self._create_widgets()
         self._layout_widgets()
@@ -84,13 +86,16 @@ class ManualFileInfoDialog(QtWidgets.QDialog):
         self.end_energy_lbl = QtWidgets.QLabel("End Energy (eV)")
         self.energy_step_lbl = QtWidgets.QLabel("Energy Step (eV)")
         self.num_step_lbl = QtWidgets.QLabel("0 Steps")
-        self.num_repeats_lbl = QtWidgets.QLabel("0 repeats")
+        self.num_repeats_lbl = QtWidgets.QLabel("# of repeats")
         self.num_expected_files_lbl = QtWidgets.QLabel("0 Expected Files")
         self.total_files_lbl = QtWidgets.QLabel("0 Files")
+        self.exp_time_lbl = QtWidgets.QLabel("Exposure Time (sec)")
 
-        self.start_energy_le = QtWidgets.QLineEdit()
-        self.end_energy_le = QtWidgets.QLineEdit()
-        self.energy_step_le = QtWidgets.QLineEdit()
+        self.start_energy_le = QtWidgets.QLineEdit('7018.0')
+        self.end_energy_le = QtWidgets.QLineEdit('7078.0')
+        self.energy_step_le = QtWidgets.QLineEdit('0.3')
+        self.num_repeats_le = QtWidgets.QLineEdit('4')
+        self.exp_time_le = QtWidgets.QLineEdit('9.0')
 
         self.ok_btn = QtWidgets.QPushButton("Done")
         self.cancel_btn = QtWidgets.QPushButton("Cancel")
@@ -107,11 +112,14 @@ class ManualFileInfoDialog(QtWidgets.QDialog):
         self._grid_layout.addWidget(self.end_energy_le, 1, 1)
         self._grid_layout.addWidget(self.energy_step_lbl, 2, 0)
         self._grid_layout.addWidget(self.energy_step_le, 2, 1)
-        self._grid_layout.addWidget(self.num_step_lbl, 3, 0)
-        self._grid_layout.addWidget(self.num_repeats_lbl, 3, 1)
-        self._grid_layout.addWidget(self.num_expected_files_lbl, 4, 0)
-        self._grid_layout.addWidget(self.ok_btn, 4, 0)
-        self._grid_layout.addWidget(self.cancel_btn, 4, 1)
+        self._grid_layout.addWidget(self.num_repeats_lbl, 3, 0)
+        self._grid_layout.addWidget(self.num_repeats_le, 3, 1)
+        self._grid_layout.addWidget(self.num_step_lbl, 4, 0)
+        self._grid_layout.addWidget(self.exp_time_lbl, 5, 0)
+        self._grid_layout.addWidget(self.exp_time_le, 5, 1)
+        self._grid_layout.addWidget(self.num_expected_files_lbl, 6, 0)
+        self._grid_layout.addWidget(self.ok_btn, 6, 1)
+        self._grid_layout.addWidget(self.cancel_btn, 6, 2)
 
         self._hbox_layout.addLayout(self._grid_layout)
 
@@ -133,7 +141,7 @@ class ManualFileInfoDialog(QtWidgets.QDialog):
         Makes everything pretty and set double/int validators for the line edits.
         """
 
-        self.selected_map_files.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
+        self.selected_files.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
 
         self.start_energy_le.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
         self.start_energy_le.setMaximumWidth(40)
@@ -141,10 +149,16 @@ class ManualFileInfoDialog(QtWidgets.QDialog):
         self.end_energy_le.setMaximumWidth(40)
         self.energy_step_le.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
         self.energy_step_le.setMaximumWidth(40)
+        self.num_repeats_le.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
+        self.num_repeats_le.setMaximumWidth(40)
+        self.exp_time_le.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
+        self.exp_time_le.setMaximumWidth(40)
 
         self.start_energy_le.setValidator(QtGui.QDoubleValidator())
         self.end_energy_le.setValidator(QtGui.QDoubleValidator())
         self.energy_step_le.setValidator(QtGui.QDoubleValidator())
+        self.num_repeats_le.setValidator(QtGui.QIntValidator())
+        self.exp_time_le.setValidator(QtGui.QDoubleValidator())
 
         self.ok_btn.setEnabled(False)
 
@@ -181,6 +195,14 @@ class ManualFileInfoDialog(QtWidgets.QDialog):
     @property
     def energy_step(self):
         return float(str(self.energy_step_le.text()))
+
+    @property
+    def num_repeats(self):
+        return int(str(self.num_repeats_le.text()))
+
+    @property
+    def exp_time(self):
+        return float(str(self.exp_time_le.text()))
 
     def exec_(self):
         """

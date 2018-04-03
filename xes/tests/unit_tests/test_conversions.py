@@ -7,7 +7,7 @@ from ...model.XESModel import XESModel
 from ...model.calib import detector_calibration
 
 
-# import numpy as np
+import numpy as np
 
 unittest_path = os.path.dirname(__file__)
 data_path = os.path.join(unittest_path, '../data')

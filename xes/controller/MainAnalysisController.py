@@ -4,7 +4,7 @@ from sys import platform as _platform
 
 from qtpy import QtWidgets, QtCore
 
-from ..widgets.MainAnalysisWidget import MainAnalysisWidget
+from ..widgets.MainAnalysisWidget import MainAnalysisWidget, ManualFileInfoDialog
 from ..widgets.UtilityWidgets import open_files_dialog
 from .GraphController import GraphController
 from .CalibrationController import CalibrationController
@@ -17,6 +17,7 @@ from ..model.XESSpectrum import XESSpectrum
 class MainAnalysisController(object):
     def __init__(self, use_settings=True):
         self.widget = MainAnalysisWidget()
+        self.manual_file_info_dialog = ManualFileInfoDialog(self.widget)
         self.model = XESModel()
         self.graph_controller = GraphController(widget=self.widget, model=self.model)
         self.calibration_controller = CalibrationController(widget=self.widget, model=self.model)
@@ -48,7 +49,12 @@ class MainAnalysisController(object):
         self.model.image_changed.connect(self.image_changed)
         self.raw_image_controller.roi_changed.connect(self.update_graph_data)
         self.graph_controller.export_data_signal.connect(self.export_data)
-
+        self.manual_file_info_dialog.read_list_btn.clicked.connect(self.manual_read_list_btn_clicked)
+        self.manual_file_info_dialog.start_energy_le.editingFinished.connect(self.manual_file_info_num_points_changed)
+        self.manual_file_info_dialog.end_energy_le.editingFinished.connect(self.manual_file_info_num_points_changed)
+        self.manual_file_info_dialog.energy_step_le.editingFinished.connect(self.manual_file_info_num_points_changed)
+        self.manual_file_info_dialog.num_repeats_le.editingFinished.connect(self.manual_file_info_num_points_changed)
+        self.model.manual_file_info_mode.connect(self.manual_file_info_mode_enabled)
 
     def switch_tabs(self):
         if self.widget.raw_data_tab_btn.isChecked():
@@ -74,6 +80,7 @@ class MainAnalysisController(object):
             self.model.xes_spectra.append(XESSpectrum())
             self.current_spectrum = self.model.xes_spectra[-1]
             theta_values, ev_values = self.model.open_files(ind=-1, file_names=file_names)
+            self.model.prepare_all_rois()
             self.model.add_data_set_to_spectrum(ind=-1,
                                                 use_bg_roi=self.widget.raw_image_widget.use_bg_roi_cb.isChecked())
             self.populate_raw_image_list(file_names)
@@ -106,6 +113,59 @@ class MainAnalysisController(object):
 
     def export_data(self, filename):
         self.model.xes_spectra[self.model.current_spectrum_ind].export_data(filename)
+
+    def manual_file_info_mode_enabled(self, file_names):
+        self.manual_file_info_dialog.file_names = file_names
+        self.manual_file_info_dialog.exec_()
+        if self.manual_file_info_dialog.approved:
+            manual_settings = {}
+            manual_settings['start_energy'] = self.manual_file_info_dialog.start_energy
+            manual_settings['end_energy'] = self.manual_file_info_dialog.end_energy
+            manual_settings['num_steps'] = (self.manual_file_info_dialog.end_energy -
+                                            self.manual_file_info_dialog.start_energy)/(
+                self.manual_file_info_dialog.energy_step)
+            manual_settings['num_repeats'] = self.manual_file_info_dialog.num_repeats
+            manual_settings['exp_time'] = self.manual_file_info_dialog.exp_time
+            self.model.manual_get_all_files_info(file_names, manual_settings)
+
+    def manual_read_list_btn_clicked(self):
+        self.manual_file_info_dialog.selected_files.clear()
+        for item in self.manual_file_info_dialog.file_names:
+            self.manual_file_info_dialog.selected_files.addItem(QtWidgets.QListWidgetItem(item))
+        self.manual_file_info_dialog.total_files_lbl.setText(
+            str(self.manual_file_info_dialog.selected_files.count()) + ' files')
+        self.manual_file_info_check_num_points()
+
+    def manual_file_info_num_points_changed(self):
+        try:
+            start_energy = float(self.manual_file_info_dialog.start_energy_le.text())
+            end_energy = float(self.manual_file_info_dialog.end_energy_le.text())
+            energy_step = float(self.manual_file_info_dialog.energy_step_le.text())
+            num_repeats = int(self.manual_file_info_dialog.num_repeats_le.text())
+            num_steps = int((end_energy - start_energy) / energy_step) + 1
+            num_defined = num_steps * num_repeats
+
+            self.manual_file_info_dialog.num_step_lbl.setText(str(num_steps))
+            self.manual_file_info_dialog.num_expected_files_lbl.setText(str(num_defined))
+        except ValueError:
+            self.manual_file_info_dialog.num_expected_files_lbl.setText('0 Expected Files')
+        self.manual_file_info_check_num_points()
+
+    def manual_file_info_check_num_points(self):
+        try:
+            start_energy = float(self.manual_file_info_dialog.start_energy_le.text())
+            end_energy = float(self.manual_file_info_dialog.end_energy_le.text())
+            energy_step = float(self.manual_file_info_dialog.energy_step_le.text())
+            num_repeats = int(self.manual_file_info_dialog.num_repeats_le.text())
+            num_defined = (int((end_energy - start_energy)/energy_step) + 1) * num_repeats
+
+            num_in_list = self.manual_file_info_dialog.selected_files.count()
+
+        except ValueError:
+            self.manual_file_info_dialog.ok_btn.setEnabled(False)
+            return
+
+        self.manual_file_info_dialog.ok_btn.setEnabled(num_defined == num_in_list)
 
     def load_settings(self):
         self.calibration_controller.load_settings(self.xes_settings)

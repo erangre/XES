@@ -17,6 +17,7 @@ c = 299792458
 
 class XESModel(QtCore.QObject):
     image_changed = QtCore.Signal()
+    manual_file_info_mode = QtCore.Signal(list)
 
     def __init__(self):
         super(XESModel, self).__init__()
@@ -33,11 +34,14 @@ class XESModel(QtCore.QObject):
         self.current_spectrum = None
         self.current_spectrum_ind = None
         self.im_data = None
+        self.im_shapes = []
         self.current_raw_im_ind = None
         self.current_roi_data = None
         self.current_bg_roi_data = None
         self.base_rois = []
         self.base_bg_rois = []
+        self.manual_theta_values = None
+        self.manual_ev_values = None
 
     def theta_to_ev(self, theta):
         d_hkl = self.d_hkl(Si_a, Si_h, Si_k, Si_l)
@@ -69,17 +73,13 @@ class XESModel(QtCore.QObject):
 
     def open_files(self, ind, file_names):
         self.manual_mode = False
-        if not self._test_files_for_meta_data():
-            self._manual_get_all_files_info()
-            self.manual_mode = True
+        if not self._test_files_for_meta_data(file_names):
+            self._enable_manual_file_info_mode(file_names)
+            return self.manual_theta_values, self.manual_ev_values
         theta_min = 90.0
         theta_max = 0.0
         theta_values = []
         ev_values = []
-        self.rois.append(OrderedDict())
-        self.bg_rois.append(OrderedDict())
-        self.base_rois.append(None)
-        self.base_bg_rois.append(None)
         for raw_image_file in file_names:
             filename = str(raw_image_file)
             img_file = open(filename, 'rb')
@@ -96,12 +96,12 @@ class XESModel(QtCore.QObject):
             if theta not in theta_values:
                 theta_values.append(theta)
                 ev_values.append(self.theta_to_ev(theta))
-                if self.base_rois[-1] is None:
-                    im_shape = np.array(im)[::-1].shape
-                    self.prepare_basic_roi(im_shape)
-                    self.prepare_basic_bg_roi(im_shape)
-                self.rois[-1][theta] = self.prepare_roi_for_theta(theta)
-                self.bg_rois[-1][theta] = self.prepare_bg_roi_for_theta(theta)
+                # if self.base_rois[-1] is None:
+                #     im_shape = np.array(im)[::-1].shape
+                #     self.prepare_basic_roi(im_shape)
+                #     self.prepare_basic_bg_roi(im_shape)
+                # self.rois[-1][theta] = self.prepare_roi_for_theta(theta)
+                # self.bg_rois[-1][theta] = self.prepare_bg_roi_for_theta(theta)
 
             im.close()
             img_file.close()
@@ -109,6 +109,18 @@ class XESModel(QtCore.QObject):
         self.xes_spectra[ind].theta_values = list(theta_values)
         self.xes_spectra[ind].ev_values = list(ev_values)
         return theta_values, ev_values
+
+    def prepare_all_rois(self):
+        self.rois.append(OrderedDict())
+        self.bg_rois.append(OrderedDict())
+        self.base_rois.append(None)
+        self.base_bg_rois.append(None)
+        im_shape = self.im_shapes[-1]
+        self.prepare_basic_roi(im_shape)
+        self.prepare_basic_bg_roi(im_shape)
+        for theta in self.xes_spectra[-1].theta_values:
+            self.rois[-1][theta] = self.prepare_roi_for_theta(theta)
+            self.bg_rois[-1][theta] = self.prepare_bg_roi_for_theta(theta)
 
     def prepare_basic_roi(self, im_shape):
         self.base_rois[-1] = np.zeros(shape=im_shape, dtype=bool)
@@ -142,6 +154,21 @@ class XESModel(QtCore.QObject):
         for theta in self.current_spectrum.theta_values:
             self.rois[s_ind][theta] = self.prepare_roi_for_theta(theta)
 
+    def _test_files_for_meta_data(self, file_names):
+        filename = str(file_names[0])
+        img_file = open(filename, 'rb')
+        im = Image.open(img_file)
+        file_info = self._get_file_info(im)
+        self.im_shapes.append(np.array(im)[::-1].shape)
+
+        im.close()
+        img_file.close()
+
+        if file_info:
+            return True
+        else:
+            return False
+
     def _get_file_info(self, image):
         result = {}
         tags = image.tag
@@ -160,8 +187,31 @@ class XESModel(QtCore.QObject):
                     result[str(k)] = v
         return result
 
-    def _manual_get_all_files_info(self):
-        pass
+    def _enable_manual_file_info_mode(self, file_names):
+        self.manual_file_info_mode.emit(file_names)
+
+    def manual_get_all_files_info(self, file_names, settings):
+        theta_start = self.ev_to_theta(settings['start_energy'])
+        theta_end = self.ev_to_theta(settings['end_energy'])
+        num_steps = settings['num_steps']
+        theta_values = np.round(np.linspace(theta_start, theta_end, num_steps+1), decimals=3)
+        ev_values = self.theta_to_ev(theta_values)
+        all_theta_values = (list(theta_values) + list(np.flipud(theta_values))) * int((settings['num_repeats']/2))
+
+        for file_name, theta in zip(file_names, all_theta_values):
+            self.xes_spectra[-1].raw_images_info.append({
+                                                            'File Name': file_name,
+                                                            'XES angle': str(theta),
+                                                            'Ion chamber2': '20',
+                                                            'ID RingCurrent': '102',
+                                                            'Date': os.path.getmtime(file_name),
+                                                            'Exposure time(s)': settings['exp_time']
+                                                        })
+            self.manual_theta_values = theta_values
+            self.manual_ev_values = ev_values
+        self.xes_spectra[-1].theta_values = list(theta_values)
+        self.xes_spectra[-1].ev_values = list(ev_values)
+        return theta_values, ev_values
 
     def add_data_set_to_spectrum(self, ind, use_bg_roi=False):
         self.current_spectrum = self.xes_spectra[ind]  # type: XESSpectrum
