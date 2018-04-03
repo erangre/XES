@@ -104,4 +104,5 @@ class RawImageController(QtCore.QObject):
         if filename is not '':
             self.model.current_directories['roi_directory'] = os.path.dirname(filename)
             self.model.load_roi(filename)
-
+            ind = self.model.current_raw_im_ind
+            self.model.set_current_image(ind)
