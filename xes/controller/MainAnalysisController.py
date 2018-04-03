@@ -77,6 +77,7 @@ class MainAnalysisController(object):
             file_names = [filename]
 
         if file_names is not None and len(file_names) is not 0:
+            self.model.current_directories['raw_image_directory'] = os.path.dirname(file_names[0])
             self.widget.num_files_lbl.setText(str(len(file_names)))
             self.model.xes_spectra.append(XESSpectrum())
             self.current_spectrum = self.model.xes_spectra[-1]
@@ -179,9 +180,25 @@ class MainAnalysisController(object):
 
     def load_settings(self):
         self.calibration_controller.load_settings(self.xes_settings)
+        export_data_directory = self.xes_settings.value("export_data_directory", defaultValue=None)
+        if export_data_directory is not None:
+            self.model.current_directories['export_data_directory'] = export_data_directory
+        export_image_directory = self.xes_settings.value("export_image_directory", defaultValue=None)
+        if export_image_directory is not None:
+            self.model.current_directories['export_image_directory'] = export_image_directory
+        raw_image_directory = self.xes_settings.value("raw_image_directory", defaultValue=None)
+        if raw_image_directory is not None:
+            self.model.current_directories['raw_image_directory'] = raw_image_directory
+        roi_directory = self.xes_settings.value("roi_directory", defaultValue=None)
+        if roi_directory is not None:
+            self.model.current_directories['roi_directory'] = roi_directory
 
     def save_settings(self):
         self.calibration_controller.save_settings(self.xes_settings)
+        self.xes_settings.setValue("export_data_directory", self.model.current_directories['export_data_directory'])
+        self.xes_settings.setValue("export_image_directory", self.model.current_directories['export_image_directory'])
+        self.xes_settings.setValue("raw_image_directory", self.model.current_directories['raw_image_directory'])
+        self.xes_settings.setValue("roi_directory", self.model.current_directories['roi_directory'])
 
     def closeEvent(self, event):
         self.save_settings()
