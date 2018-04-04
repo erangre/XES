@@ -17,12 +17,16 @@ class RawImageWidget(QtWidgets.QWidget):
         self.save_roi_btn = QtWidgets.QPushButton('Save ROI')
         self.load_roi_btn = QtWidgets.QPushButton('Load ROI')
         self.use_bg_roi_cb = QtWidgets.QCheckBox('Use BG-ROI?')
+        self.bg_roi_size_lbl = QtWidgets.QLabel('BG-ROI width')
+        self.bg_roi_size_sb = QtWidgets.QSpinBox()
 
         self._roi_layout = QtWidgets.QHBoxLayout()
         self._roi_layout.addWidget(self.reintegrate_btn)
         self._roi_layout.addWidget(self.save_roi_btn)
         self._roi_layout.addWidget(self.load_roi_btn)
         self._roi_layout.addWidget(self.use_bg_roi_cb)
+        self._roi_layout.addWidget(self.bg_roi_size_lbl)
+        self._roi_layout.addWidget(self.bg_roi_size_sb)
 
         self._layout.addLayout(self._roi_layout)
 
@@ -77,7 +81,9 @@ class RawImageWidget(QtWidgets.QWidget):
         self.set_widget_properties()
 
     def set_widget_properties(self):
-        pass
+        self.bg_roi_size_sb.setSingleStep(2)
+        self.bg_roi_size_sb.setValue(21)
+        self.bg_roi_size_sb.setMinimum(19)
 
     def load_image(self, img_data):
         self.img_view.img_data = img_data

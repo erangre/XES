@@ -40,6 +40,7 @@ class RawImageController(QtCore.QObject):
         self.widget.reintegrate_btn.clicked.connect(self.reintegrate_btn_clicked)
         self.widget.save_roi_btn.clicked.connect(self.save_roi_btn_clicked)
         self.widget.load_roi_btn.clicked.connect(self.load_roi_btn_clicked)
+        self.widget.bg_roi_size_sb.valueChanged.connect(self.bg_roi_size_changed)
 
     def process_mouse_left_clicked(self, x, y):
         if self.model.im_data is None:
@@ -106,3 +107,9 @@ class RawImageController(QtCore.QObject):
             self.model.load_roi(filename)
             ind = self.model.current_raw_im_ind
             self.model.set_current_image(ind)
+
+    def bg_roi_size_changed(self):
+        self.model.recalc_all_bg_rois(size=self.widget.bg_roi_size_sb.value())
+        self.widget.img_view.plot_mask_b(self.model.current_bg_roi_data)
+        ind = self.model.current_raw_im_ind
+        self.model.set_current_image(ind)
