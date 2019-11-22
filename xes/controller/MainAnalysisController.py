@@ -50,6 +50,7 @@ class MainAnalysisController(object):
         self.raw_image_controller.roi_changed.connect(self.update_graph_data)
         self.graph_controller.export_data_signal.connect(self.export_data)
         self.graph_controller.current_spectrum_changed_signal.connect(self.current_spectrum_changed_in_graph)
+        self.graph_controller.normalization_changed_signal.connect(self.update_graph_data)
         self.manual_file_info_dialog.read_list_btn.clicked.connect(self.manual_read_list_btn_clicked)
         self.manual_file_info_dialog.start_energy_le.editingFinished.connect(self.manual_file_info_num_points_changed)
         self.manual_file_info_dialog.end_energy_le.editingFinished.connect(self.manual_file_info_num_points_changed)
@@ -111,7 +112,7 @@ class MainAnalysisController(object):
         self.widget.raw_image_widget.img_view.set_color_b([255, 0, 0, 100])
 
         self.widget.raw_image_widget.img_view.plot_mask(self.model.current_roi_data)
-        self.widget.raw_image_widget.img_view.plot_mask_b(self.model.current_bg_roi_data)
+        # self.widget.raw_image_widget.img_view.plot_mask_b(self.model.current_bg_roi_data)
 
     def export_data(self, filename):
         self.model.xes_spectra[self.model.current_spectrum_ind].export_data(filename)

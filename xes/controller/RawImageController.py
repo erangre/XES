@@ -110,6 +110,6 @@ class RawImageController(QtCore.QObject):
 
     def bg_roi_size_changed(self):
         self.model.recalc_all_bg_rois(size=self.widget.bg_roi_size_sb.value())
-        self.widget.img_view.plot_mask_b(self.model.current_bg_roi_data)
+        # self.widget.img_view.plot_mask_b(self.model.current_bg_roi_data)
         ind = self.model.current_raw_im_ind
         self.model.set_current_image(ind)
